@@ -24,7 +24,7 @@ async function importTrees() {
 
   try {
     await client.connect()
-    const db = client.db("treespoter")
+    const db = client.db("treespotter")
     const collection = db.collection("trees")
 
     await collection.deleteMany({})
