@@ -63,7 +63,7 @@ app.get("/api/trees/nearby", async (req, res) => {
         location: {
           $near: {
             $geometry: { type: "Point", coordinates: [lng, lat] },
-            $maxDistance: 500,
+            $maxDistance: 1000,
           },
         },
       })

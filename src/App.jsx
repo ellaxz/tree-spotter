@@ -1,7 +1,8 @@
-import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet"
+import { MapContainer, TileLayer, Marker, Popup, Circle } from "react-leaflet"
 import L from "leaflet"
 import "leaflet/dist/leaflet.css"
-import { sampleTrees } from "./data/sampleTrees"
+import { useEffect, useState } from "react"
+import RecenterMap from "./components/RecenterMap"
 
 // fix for leaflet's default marker icon not showing up under Vite/bundlers
 delete L.Icon.Default.prototype._getIconUrl
@@ -17,19 +18,50 @@ L.Icon.Default.mergeOptions({
 const MELBOURNE_CENTER = [-37.808, 144.965]
 
 function App() {
+  const [trees, setTrees] = useState([])
+  const [userLocation, setUserLocation] = useState(null)
+
+  useEffect(() => {
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        const lat = position.coords.latitude
+        const lng = position.coords.longitude
+        setUserLocation([lat, lng])
+
+        fetch(`http://localhost:3001/api/trees/nearby?lat=${lat}&lng=${lng}`)
+          .then((res) => res.json())
+          .then((data) => {
+            setTrees(data)
+          })
+          .catch((err) => console.error("failed to fetch trees:", err))
+      },
+      (error) => {
+        console.error("geolocation failed:", error)
+      },
+    )
+  }, [])
+
   return (
     <div style={{ height: "100vh", width: "100%" }}>
       <MapContainer
-        center={MELBOURNE_CENTER}
-        zoom={13}
+        center={userLocation || MELBOURNE_CENTER}
+        zoom={16}
         style={{ height: "100%", width: "100%" }}
       >
+        <RecenterMap position={userLocation} />
+        {userLocation && (
+          <Circle
+            center={userLocation}
+            radius={20}
+            pathOptions={{ color: "red", fillColor: "red", fillOpacity: 0.8 }}
+          />
+        )}
         <TileLayer
           attribution="&copy;OpenStreetMap contributors"
           url="http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
         />
         {/* turn each tree in fake trees into a map marker */}
-        {sampleTrees.map((tree) => (
+        {trees.map((tree) => (
           <Marker key={tree.id} position={[tree.lat, tree.lng]}>
             <Popup>
               <strong>{tree.commonName}</strong>
