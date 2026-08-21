@@ -1,7 +1,7 @@
 import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet"
 import L from "leaflet"
 import "leaflet/dist/leaflet.css"
-import { fakeTrees } from "./data/fakeTrees"
+import { sampleTrees } from "./data/sampleTrees"
 
 // fix for leaflet's default marker icon not showing up under Vite/bundlers
 delete L.Icon.Default.prototype._getIconUrl
@@ -21,7 +21,7 @@ function App() {
     <div style={{ height: "100vh", width: "100%" }}>
       <MapContainer
         center={MELBOURNE_CENTER}
-        zoom={15}
+        zoom={13}
         style={{ height: "100%", width: "100%" }}
       >
         <TileLayer
@@ -29,14 +29,14 @@ function App() {
           url="http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
         />
         {/* turn each tree in fake trees into a map marker */}
-        {fakeTrees.map((tree) => (
+        {sampleTrees.map((tree) => (
           <Marker key={tree.id} position={[tree.lat, tree.lng]}>
             <Popup>
               <strong>{tree.commonName}</strong>
               <br />
               <em>{tree.scientificName}</em>
               <br />
-              Planted:{tree.plantedYear}
+              Planted:{tree.yearPlanted}
             </Popup>
           </Marker>
         ))}
