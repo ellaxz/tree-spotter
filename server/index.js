@@ -4,6 +4,7 @@ import cors from "cors"
 
 import dotenv from "dotenv"
 import { MongoClient } from "mongodb"
+import createTreesRouter from "./routes/trees.js"
 
 dotenv.config()
 
@@ -25,6 +26,8 @@ async function startServer() {
 
   const count = await treesCollection.countDocuments()
   console.log("total trees in collection:", count)
+  //treesCollection must exist by this point
+  app.use("/api/trees", createTreesRouter(treesCollection))
 
   app.listen(PORT, () => {
     console.log(`server running on http://localhost:${PORT}`)
@@ -45,36 +48,6 @@ app.get("/test", (req, res) => {
   console.log(typeof latNumber)
 
   res.send("this is a test route")
-})
-
-app.get("/api/trees/nearby", async (req, res) => {
-  const lat = parseFloat(req.query.lat)
-  const lng = parseFloat(req.query.lng)
-
-  if (isNaN(lat) || isNaN(lng)) {
-    return res
-      .status(400)
-      .json({ error: "lat and lng query parameters are required" })
-  }
-
-  try {
-    const nearbyTrees = await treesCollection
-      .find({
-        location: {
-          $near: {
-            $geometry: { type: "Point", coordinates: [lng, lat] },
-            $maxDistance: 1000,
-          },
-        },
-      })
-      .limit(100)
-      .toArray()
-
-    res.json(nearbyTrees)
-  } catch (err) {
-    console.error("Query failed:", err)
-    res.status(500).json({ error: "Failed to query nearby trees" })
-  }
 })
 
 startServer()
