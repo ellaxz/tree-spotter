@@ -1,9 +1,10 @@
-import { MapContainer, TileLayer, Marker, Popup, Circle } from "react-leaflet"
+import { MapContainer, TileLayer, CircleMarker, Circle } from "react-leaflet"
 import L from "leaflet"
 import "leaflet/dist/leaflet.css"
 import { useEffect, useState } from "react"
 import RecenterMap from "./components/RecenterMap"
 import LocateButton from "./components/LocateButton"
+import TreeInfoPanel from "./components/TreeInfoPanel"
 
 // fix for leaflet's default marker icon not showing up under Vite/bundlers
 delete L.Icon.Default.prototype._getIconUrl
@@ -21,6 +22,7 @@ const MELBOURNE_CENTER = [-37.808, 144.965]
 function App() {
   const [trees, setTrees] = useState([])
   const [userLocation, setUserLocation] = useState(null)
+  const [selectedTree, setSelectedTree] = useState(null)
 
   useEffect(() => {
     navigator.geolocation.getCurrentPosition(
@@ -49,6 +51,10 @@ function App() {
         zoom={16}
         style={{ height: "100%", width: "100%" }}
       >
+        <TreeInfoPanel
+          tree={selectedTree}
+          onClose={() => setSelectedTree(null)}
+        />
         <RecenterMap position={userLocation} />
         <LocateButton onLocate={setUserLocation} />
         {userLocation && (
@@ -63,17 +69,27 @@ function App() {
           url="http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
         />
         {/* render each nearby tree as a map marker */}
-        {trees.map((tree) => (
-          <Marker key={tree.id} position={[tree.lat, tree.lng]}>
-            <Popup>
-              <strong>{tree.commonName}</strong>
-              <br />
-              <em>{tree.scientificName}</em>
-              <br />
-              Planted:{tree.yearPlanted}
-            </Popup>
-          </Marker>
-        ))}
+        {trees.map((tree) => {
+          const isSelected = selectedTree && selectedTree.id === tree.id
+          return (
+            <CircleMarker
+              key={tree.id}
+              center={[tree.lat, tree.lng]}
+              radius={isSelected ? 12 : 7}
+              pathOptions={{
+                color: "white",
+                weight: 2,
+                fillColor: isSelected ? "#FF5722" : "#2E7D32",
+                fillOpacity: 0.9,
+              }}
+              eventHandlers={{
+                click: () => {
+                  setSelectedTree(tree)
+                },
+              }}
+            />
+          )
+        })}
       </MapContainer>
     </div>
   )
