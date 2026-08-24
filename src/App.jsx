@@ -3,6 +3,7 @@ import L from "leaflet"
 import "leaflet/dist/leaflet.css"
 import { useEffect, useState } from "react"
 import RecenterMap from "./components/RecenterMap"
+import LocateButton from "./components/LocateButton"
 
 // fix for leaflet's default marker icon not showing up under Vite/bundlers
 delete L.Icon.Default.prototype._getIconUrl
@@ -49,6 +50,7 @@ function App() {
         style={{ height: "100%", width: "100%" }}
       >
         <RecenterMap position={userLocation} />
+        <LocateButton onLocate={setUserLocation} />
         {userLocation && (
           <Circle
             center={userLocation}
@@ -60,7 +62,7 @@ function App() {
           attribution="&copy;OpenStreetMap contributors"
           url="http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
         />
-        {/* turn each tree in fake trees into a map marker */}
+        {/* render each nearby tree as a map marker */}
         {trees.map((tree) => (
           <Marker key={tree.id} position={[tree.lat, tree.lng]}>
             <Popup>
