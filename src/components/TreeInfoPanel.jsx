@@ -1,19 +1,18 @@
 function TreeInfoPanel({ tree, onClose }) {
   if (!tree) {
-    return null
+    return (
+      <div style={{ padding: "16ps" }}>
+        <p>click a tree on the map to see details</p>
+      </div>
+    )
   }
   return (
     <div
       style={{
-        position: "absolute",
-        top: "20px",
-        left: "20px",
-        zIndex: 1000,
-        backgroundColor: "white",
         padding: "16px",
-        borderRadius: "8px",
-        boxShadow: "0 2px 8px rgba(0,0,0,0.25)",
-        maxWidth: "280px",
+        height: "100%",
+        boxSizing: "border-box",
+        position: "relative",
       }}
     >
       <button

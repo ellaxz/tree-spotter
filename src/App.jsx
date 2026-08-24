@@ -45,52 +45,62 @@ function App() {
   }, [])
 
   return (
-    <div style={{ height: "100vh", width: "100%" }}>
-      <MapContainer
-        center={userLocation || MELBOURNE_CENTER}
-        zoom={16}
-        style={{ height: "100%", width: "100%" }}
-      >
+    <div
+      style={{
+        display: "flex",
+        height: "100vh",
+        width: "100%",
+      }}
+    >
+      <div style={{ width: "320px", borderRight: "1px solid #ddd" }}>
         <TreeInfoPanel
           tree={selectedTree}
           onClose={() => setSelectedTree(null)}
         />
-        <RecenterMap position={userLocation} />
-        <LocateButton onLocate={setUserLocation} />
-        {userLocation && (
-          <Circle
-            center={userLocation}
-            radius={20}
-            pathOptions={{ color: "red", fillColor: "red", fillOpacity: 0.8 }}
-          />
-        )}
-        <TileLayer
-          attribution="&copy;OpenStreetMap contributors"
-          url="http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-        />
-        {/* render each nearby tree as a map marker */}
-        {trees.map((tree) => {
-          const isSelected = selectedTree && selectedTree.id === tree.id
-          return (
-            <CircleMarker
-              key={tree.id}
-              center={[tree.lat, tree.lng]}
-              radius={isSelected ? 12 : 7}
-              pathOptions={{
-                color: "white",
-                weight: 2,
-                fillColor: isSelected ? "#FF5722" : "#2E7D32",
-                fillOpacity: 0.9,
-              }}
-              eventHandlers={{
-                click: () => {
-                  setSelectedTree(tree)
-                },
-              }}
+      </div>
+      <div style={{ flex: 1 }}>
+        <MapContainer
+          center={userLocation || MELBOURNE_CENTER}
+          zoom={16}
+          style={{ height: "100%", width: "100%" }}
+        >
+          <RecenterMap position={userLocation} />
+          <LocateButton onLocate={setUserLocation} />
+          {userLocation && (
+            <Circle
+              center={userLocation}
+              radius={20}
+              pathOptions={{ color: "red", fillColor: "red", fillOpacity: 0.8 }}
             />
-          )
-        })}
-      </MapContainer>
+          )}
+          <TileLayer
+            attribution="&copy;OpenStreetMap contributors"
+            url="http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+          />
+          {/* render each nearby tree as a map marker */}
+          {trees.map((tree) => {
+            const isSelected = selectedTree && selectedTree.id === tree.id
+            return (
+              <CircleMarker
+                key={tree.id}
+                center={[tree.lat, tree.lng]}
+                radius={isSelected ? 12 : 7}
+                pathOptions={{
+                  color: "white",
+                  weight: 2,
+                  fillColor: isSelected ? "#FF5722" : "#2E7D32",
+                  fillOpacity: 0.9,
+                }}
+                eventHandlers={{
+                  click: () => {
+                    setSelectedTree(tree)
+                  },
+                }}
+              />
+            )
+          })}
+        </MapContainer>
+      </div>
     </div>
   )
 }
