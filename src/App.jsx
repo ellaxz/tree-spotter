@@ -2,9 +2,11 @@ import { MapContainer, TileLayer, CircleMarker, Circle } from "react-leaflet"
 import L from "leaflet"
 import "leaflet/dist/leaflet.css"
 import { useEffect, useState } from "react"
+
 import RecenterMap from "./components/RecenterMap"
 import LocateButton from "./components/LocateButton"
 import TreeInfoPanel from "./components/TreeInfoPanel"
+import MapMoveHandler from "./components/MapMoveHandler"
 
 // fix for leaflet's default marker icon not showing up under Vite/bundlers
 delete L.Icon.Default.prototype._getIconUrl
@@ -24,19 +26,22 @@ function App() {
   const [userLocation, setUserLocation] = useState(null)
   const [selectedTree, setSelectedTree] = useState(null)
 
+  function fetchNearbyTrees(lat, lng) {
+    fetch(`http://localhost:3001/api/trees/nearby?lat=${lat}&lng=${lng}`)
+      .then((res) => res.json())
+      .then((data) => {
+        setTrees(data)
+      })
+      .catch((err) => console.error("failed to fetch trees:", err))
+  }
+
   useEffect(() => {
     navigator.geolocation.getCurrentPosition(
       (position) => {
         const lat = position.coords.latitude
         const lng = position.coords.longitude
         setUserLocation([lat, lng])
-
-        fetch(`http://localhost:3001/api/trees/nearby?lat=${lat}&lng=${lng}`)
-          .then((res) => res.json())
-          .then((data) => {
-            setTrees(data)
-          })
-          .catch((err) => console.error("failed to fetch trees:", err))
+        fetchNearbyTrees(lat, lng)
       },
       (error) => {
         console.error("geolocation failed:", error)
@@ -64,6 +69,7 @@ function App() {
           zoom={16}
           style={{ height: "100%", width: "100%" }}
         >
+          <MapMoveHandler onMapMove={fetchNearbyTrees} />
           <RecenterMap position={userLocation} />
           <LocateButton onLocate={setUserLocation} />
           {userLocation && (

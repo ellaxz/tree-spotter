@@ -6,6 +6,8 @@ function TreeInfoPanel({ tree, onClose }) {
       </div>
     )
   }
+
+  const streetViewUrl = `https://www.google.com/maps/@?api=1&map_action=pano&viewpoint=${tree.lat},${tree.lng}`
   return (
     <div
       style={{
@@ -17,15 +19,7 @@ function TreeInfoPanel({ tree, onClose }) {
     >
       <button
         onClick={onClose}
-        style={{
-          position: "absolute",
-          top: "8px",
-          right: "8px",
-          border: "none",
-          background: "none",
-          fontSize: "18px",
-          cursor: "pointer",
-        }}
+        className="absolute top-2 right-2 border-none bg-transparent text-lg cursor-pointer"
       >
         ✕
       </button>
@@ -36,6 +30,15 @@ function TreeInfoPanel({ tree, onClose }) {
       <p>Planted: {tree.yearPlanted}</p>
       <p>Life expectancy: {tree.usefulLifeExpectancy}</p>
       <p>Precinct: {tree.precinct}</p>
+      <p>
+        <a href={streetViewUrl} target="_blank" rel="noopener noreferrer">
+          View on Street View
+        </a>
+        <br />
+        <small style={{ color: "#888" }}>
+          Street View imagery may not reflect the tree's current appearance
+        </small>
+      </p>
     </div>
   )
 }
