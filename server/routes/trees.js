@@ -35,5 +35,48 @@ export default function createTreesRouter(treeCollection) {
       res.status(500).json({ error: "failed to query nearby trees" })
     }
   })
+
+  router.get("/in-bounds", async (req, res) => {
+    const north = parseFloat(req.query.north)
+    const south = parseFloat(req.query.south)
+    const east = parseFloat(req.query.east)
+    const west = parseFloat(req.query.west)
+
+    if (isNaN(north) || isNaN(south) || isNaN(east) || isNaN(west)) {
+      return res
+        .status(400)
+        .json({ error: "north,south,east,west query parements are required" })
+    }
+
+    try {
+      const treesInBounds = await treeCollection
+        .find({
+          location: {
+            $geoWithin: {
+              $geometry: {
+                type: "Polygon",
+                coordinates: [
+                  [
+                    [west, south],
+                    [east, south],
+                    [east, north],
+                    [west, north],
+                    [west, south],
+                  ],
+                ],
+              },
+            },
+          },
+        })
+        .limit(500)
+        .toArray()
+
+      res.json(treesInBounds)
+    } catch (err) {
+      console.error("query failed:", err)
+      res.status(500).json({ error: "failed to query trees in bounds" })
+    }
+  })
+
   return router
 }

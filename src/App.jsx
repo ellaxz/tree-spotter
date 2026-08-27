@@ -12,6 +12,8 @@ import RecenterMap from "./components/RecenterMap"
 import LocateButton from "./components/LocateButton"
 import TreeInfoPanel from "./components/TreeInfoPanel"
 import MapMoveHandler from "./components/MapMoveHandler"
+import InitialBoundsHandler from "./components/InitialBoundsHandler"
+import MapResizeHandler from "./components/MapResizeHandler"
 
 // fix for leaflet's default marker icon not showing up under Vite/bundlers
 delete L.Icon.Default.prototype._getIconUrl
@@ -22,29 +24,24 @@ L.Icon.Default.mergeOptions({
   shadowUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png",
 })
 
-// initial map center, near melbourne cbd for now
-
+// fallback center used before we get the user's real location
 const MELBOURNE_CENTER = [-37.808, 144.965]
-
-// convert the map's zoom level in meters to avoid showing a mostly empty map
-function getRadiusForZoom(zoom) {
-  if (zoom >= 16) return 1000
-  if (zoom >= 14) return 3000
-  if (zoom >= 12) return 8000
-  if (zoom >= 10) return 20000
-  return 40000
-}
 
 function App() {
   const [trees, setTrees] = useState([])
   const [userLocation, setUserLocation] = useState(null)
   const [selectedTree, setSelectedTree] = useState(null)
+  const [layoutVersion, setLayoutVersion] = useState(0) // bump this to tell the map to recheck its size
 
-  function fetchNearbyTrees(lat, lng, zoom) {
-    const radius = getRadiusForZoom(zoom)
+  // queries trees within the map's current visible rectangle
+  function fetchTreesByBounds(bounds) {
+    const north = bounds.getNorth()
+    const south = bounds.getSouth()
+    const east = bounds.getEast()
+    const west = bounds.getWest()
 
     fetch(
-      `http://localhost:3001/api/trees/nearby?lat=${lat}&lng=${lng}&radius=${radius}`,
+      `http://localhost:3001/api/trees/in-bounds?north=${north}&south=${south}&east=${east}&west=${west}`,
     )
       .then((res) => res.json())
       .then((data) => {
@@ -59,7 +56,6 @@ function App() {
         const lat = position.coords.latitude
         const lng = position.coords.longitude
         setUserLocation([lat, lng])
-        fetchNearbyTrees(lat, lng, 16)
       },
       (error) => {
         console.error("geolocation failed:", error)
@@ -74,7 +70,12 @@ function App() {
         <span className="text-lg font-medium text-gray-900">TreeSpotter</span>
       </header>
 
-      <Group orientation="horizontal" className="flex-1">
+      {/* desktop: drag the separator to resize sidebar vs map */}
+      <Group
+        orientation="horizontal"
+        className="flex-1"
+        onLayoutChanged={() => setLayoutVersion((v) => v + 1)} // recheck the map size when sidebar width changed
+      >
         <Panel
           defaultSize="20%"
           minSize="15%"
@@ -102,9 +103,11 @@ function App() {
             zoom={16}
             style={{ height: "100%", width: "100%" }}
           >
-            <MapMoveHandler onMapMove={fetchNearbyTrees} />
+            <MapMoveHandler onMapMove={fetchTreesByBounds} />
+            <InitialBoundsHandler onReady={fetchTreesByBounds} />
             <RecenterMap position={userLocation} />
             <LocateButton onLocate={setUserLocation} />
+            <MapResizeHandler trigger={layoutVersion} />
             {userLocation && (
               <Circle
                 center={userLocation}

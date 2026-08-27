@@ -3,14 +3,12 @@ import { useMapEvents } from "react-leaflet"
 function MapMoveHandler({ onMapMove }) {
   useMapEvents({
     dragend: (e) => {
-      const center = e.target.getCenter()
-      const zoom = e.target.getZoom()
-      onMapMove(center.lat, center.lng, zoom)
+      const bounds = e.target.getBounds()
+      onMapMove(bounds)
     },
     zoomend: (e) => {
-      const center = e.target.getCenter()
-      const zoom = e.target.getZoom()
-      onMapMove(center.lat, center.lng, zoom)
+      const bounds = e.target.getBounds()
+      onMapMove(bounds)
     },
   })
   return null
