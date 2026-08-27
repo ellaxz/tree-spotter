@@ -2,6 +2,9 @@ import { MapContainer, TileLayer, CircleMarker, Circle } from "react-leaflet"
 import L from "leaflet"
 import "leaflet/dist/leaflet.css"
 import { useEffect, useState } from "react"
+import MarkerClusterGroup from "react-leaflet-cluster"
+import "leaflet.markercluster/dist/MarkerCluster.css"
+import "leaflet.markercluster/dist/MarkerCluster.Default.css"
 
 import RecenterMap from "./components/RecenterMap"
 import LocateButton from "./components/LocateButton"
@@ -89,27 +92,29 @@ function App() {
             url="http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
           />
           {/* render each nearby tree as a map marker */}
-          {trees.map((tree) => {
-            const isSelected = selectedTree && selectedTree.id === tree.id
-            return (
-              <CircleMarker
-                key={tree.id}
-                center={[tree.lat, tree.lng]}
-                radius={isSelected ? 12 : 7}
-                pathOptions={{
-                  color: "white",
-                  weight: 2,
-                  fillColor: isSelected ? "#FF5722" : "#2E7D32",
-                  fillOpacity: 0.9,
-                }}
-                eventHandlers={{
-                  click: () => {
-                    setSelectedTree(tree)
-                  },
-                }}
-              />
-            )
-          })}
+          <MarkerClusterGroup disableClusteringAtZoom={16}>
+            {trees.map((tree) => {
+              const isSelected = selectedTree && selectedTree.id === tree.id
+              return (
+                <CircleMarker
+                  key={tree.id}
+                  center={[tree.lat, tree.lng]}
+                  radius={isSelected ? 12 : 7}
+                  pathOptions={{
+                    color: "white",
+                    weight: 2,
+                    fillColor: isSelected ? "#FF5722" : "#2E7D32",
+                    fillOpacity: 0.9,
+                  }}
+                  eventHandlers={{
+                    click: () => {
+                      setSelectedTree(tree)
+                    },
+                  }}
+                />
+              )
+            })}
+          </MarkerClusterGroup>
         </MapContainer>
       </div>
     </div>
