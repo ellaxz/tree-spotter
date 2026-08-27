@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react"
+import { TreePine } from "lucide-react"
 
 function TreeInfoPanel({ tree, onClose }) {
   const [imageUrl, setImageUrl] = useState(null)
@@ -59,7 +60,7 @@ function TreeInfoPanel({ tree, onClose }) {
   const streetViewUrl = `https://www.google.com/maps/@?api=1&map_action=pano&viewpoint=${tree.lat},${tree.lng}`
   return (
     <div className="h-full box-border">
-      <div className="relative h-48 bg-gray-100 flex items-center justify-center overflow-hidden">
+      <div className="relative h-64 bg-gray-100 flex items-center justify-center overflow-hidden">
         {isLoadingImage ? (
           <span className="text-gray-400 text-sm">loading</span>
         ) : imageUrl ? (
@@ -69,7 +70,10 @@ function TreeInfoPanel({ tree, onClose }) {
             className="w-full h-full object-cover"
           />
         ) : (
-          <span className="text-gray-400 text-sm">no image available</span>
+          <div className="flex flex-col items-center gap-2 text-gray-400">
+            <TreePine size={32} />
+            <span className="text-sm">no image available</span>
+          </div>
         )}
         <button
           onClick={onClose}
@@ -80,22 +84,36 @@ function TreeInfoPanel({ tree, onClose }) {
       </div>
 
       <div className="p-4">
-        <h3>{tree.commonName}</h3>
-        <p>
-          <em>{tree.scientificName}</em>
+        <h3 className="text-xl font-medium text-gray-900 m-0">
+          {tree.commonName}
+        </h3>
+        <p className="text-sm italic text-gray-500 mt-1 mb-3">
+          {tree.scientificName}
         </p>
-        <p>Planted: {tree.yearPlanted}</p>
-        <p>Life expectancy: {tree.usefulLifeExpectancy}</p>
-        <p>Precinct: {tree.precinct}</p>
-        <p>
-          <a href={streetViewUrl} target="_blank" rel="noopener noreferrer">
-            View on Street View
+
+        <p className="text-sm text-gray-600 leading-relaxed">
+          Planted in {tree.yearPlanted}, in {tree.precinct}. Expected to live
+          another {tree.usefulLifeExpectancy}.
+        </p>
+
+        <div className="mt-4 pt-3 border-t border-gray-100">
+          <a
+            href={streetViewUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-sm text-green-700 no-underline"
+          >
+            view on street view
           </a>
-          <br />
-          <small className="text-gray-500">
-            Street View imagery may not reflect the tree's current appearance
-          </small>
-        </p>
+
+          <p>
+            <small className="text-gray-500">
+              Some data (planting year, life expectancy, street view imagery)
+              may be approximate or based on periodic assessments rather than
+              current, tree-specific conditions.
+            </small>
+          </p>
+        </div>
       </div>
     </div>
   )

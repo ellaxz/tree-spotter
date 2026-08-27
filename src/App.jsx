@@ -20,14 +20,25 @@ L.Icon.Default.mergeOptions({
 // initial map center, near melbourne cbd for now
 
 const MELBOURNE_CENTER = [-37.808, 144.965]
+function getRadiusForZoom(zoom) {
+  if (zoom >= 16) return 1000
+  if (zoom >= 14) return 3000
+  if (zoom >= 12) return 8000
+  if (zoom >= 10) return 20000
+  return 40000
+}
 
 function App() {
   const [trees, setTrees] = useState([])
   const [userLocation, setUserLocation] = useState(null)
   const [selectedTree, setSelectedTree] = useState(null)
 
-  function fetchNearbyTrees(lat, lng) {
-    fetch(`http://localhost:3001/api/trees/nearby?lat=${lat}&lng=${lng}`)
+  function fetchNearbyTrees(lat, lng, zoom) {
+    const radius = getRadiusForZoom(zoom)
+
+    fetch(
+      `http://localhost:3001/api/trees/nearby?lat=${lat}&lng=${lng}&radius=${radius}`,
+    )
       .then((res) => res.json())
       .then((data) => {
         setTrees(data)
@@ -41,7 +52,7 @@ function App() {
         const lat = position.coords.latitude
         const lng = position.coords.longitude
         setUserLocation([lat, lng])
-        fetchNearbyTrees(lat, lng)
+        fetchNearbyTrees(lat, lng, 16)
       },
       (error) => {
         console.error("geolocation failed:", error)

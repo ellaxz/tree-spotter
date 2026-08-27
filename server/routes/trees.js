@@ -9,6 +9,7 @@ export default function createTreesRouter(treeCollection) {
   router.get("/nearby", async (req, res) => {
     const lat = parseFloat(req.query.lat)
     const lng = parseFloat(req.query.lng)
+    const radius = parseFloat(req.query.radius) || 1000
 
     if (isNaN(lat) || isNaN(lng)) {
       return res
@@ -21,11 +22,11 @@ export default function createTreesRouter(treeCollection) {
           location: {
             $near: {
               $geometry: { type: "Point", coordinates: [lng, lat] },
-              $maxDistance: 1000,
+              $maxDistance: radius,
             },
           },
         })
-        .limit(100)
+        .limit(1000)
         .toArray()
 
       res.json(nearbyTrees)

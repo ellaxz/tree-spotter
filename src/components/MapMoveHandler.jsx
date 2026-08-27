@@ -4,11 +4,13 @@ function MapMoveHandler({ onMapMove }) {
   useMapEvents({
     dragend: (e) => {
       const center = e.target.getCenter()
-      onMapMove(center.lat, center.lng)
+      const zoom = e.target.getZoom()
+      onMapMove(center.lat, center.lng, zoom)
     },
     zoomend: (e) => {
       const center = e.target.getCenter()
-      onMapMove(center.lat, center.lng)
+      const zoom = e.target.getZoom()
+      onMapMove(center.lat, center.lng, zoom)
     },
   })
   return null
