@@ -20,22 +20,7 @@ function LocateButton({ onLocate }) {
   return (
     <button
       onClick={handleClick}
-      style={{
-        position: "absolute",
-        bottom: "24px",
-        right: "24px",
-        zIndex: 1000,
-        width: "44px",
-        height: "44px",
-        borderRadius: "50%",
-        border: "none",
-        backgroundColor: "white",
-        boxShadow: "0 2px 8px rgba(0,0,0,0.25)",
-        cursor: "pointer",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-      }}
+      className="absolute bottom-6 right-6 z-1000 w-11 h-11 rounded-full border-none bg-white shadow-lg cursor-pointer flex items-center justify-center"
     >
       <svg
         width="20"

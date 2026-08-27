@@ -50,20 +50,14 @@ function App() {
   }, [])
 
   return (
-    <div
-      style={{
-        display: "flex",
-        height: "100vh",
-        width: "100%",
-      }}
-    >
-      <div style={{ width: "320px", borderRight: "1px solid #ddd" }}>
+    <div className="flex h-screen w-full">
+      <div className="w-80 border-r border-gray-200">
         <TreeInfoPanel
           tree={selectedTree}
           onClose={() => setSelectedTree(null)}
         />
       </div>
-      <div style={{ flex: 1 }}>
+      <div className="flex-1">
         <MapContainer
           center={userLocation || MELBOURNE_CENTER}
           zoom={16}
