@@ -77,7 +77,7 @@ function TreeInfoPanel({ tree, onClose }) {
         )}
         <button
           onClick={onClose}
-          className="absolute top-2 right-2 border-none bg-transparent text-lg cursor-pointer"
+          className="absolute top-2 right-2 w-10 h-10 flex items-center justify-center border-none bg-black/40 text-white text-xl rounded-full cursor-pointer"
         >
           ✕
         </button>
