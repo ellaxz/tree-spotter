@@ -1,6 +1,6 @@
 # TreeSpotter 🌳
 
-A location-based web app that helps you discover real street trees around Melbourne, using open data from the City of Melbourne.
+A location-based web app that helps you discover real street trees around Melbourne using open data from the City of Melbourne.
 
 Click any tree to see its species, planting year, and life expectancy.
 
@@ -13,7 +13,7 @@ That's how TreeSpotter started. Point at a tree, discover its name, and see the 
 ## Features
 
 - Geolocation-based map showing nearby trees with bounding-box queries that update as you pan and zoom
-- Click any tree to view its details and a species photo from Wikipedia, with a two-step lookup to handle taxonomy naming changes
+- Click any tree to view its details and a species photo from Wikipedia, using a two-step lookup to handle taxonomy naming changes
 - Marker clustering for a cleaner view when zoomed out
 - Resizable sidebar on desktop and a bottom sheet on mobile
 
@@ -27,10 +27,10 @@ That's how TreeSpotter started. Point at a tree, discover its name, and see the 
 
 Tree data comes from the [City of Melbourne Open Data Portal](https://data.melbourne.vic.gov.au/explore/dataset/trees-with-species-and-dimensions-urban-forest/), licensed under CC BY 4.0.
 
-## Known limitations
+## Planned improvements
 
-- No automated tests yet
-- Not yet deployed, currently local-only
+- Basic API tests with Vitest, covering normal queries, missing parameters, and empty results
+- Empty-state messaging when no trees are found in the current view
 
 ## Running locally
 

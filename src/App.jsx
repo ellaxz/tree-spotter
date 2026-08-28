@@ -2,7 +2,7 @@ import { MapContainer, TileLayer, CircleMarker, Circle } from "react-leaflet"
 import { TreePine } from "lucide-react"
 import L from "leaflet"
 import "leaflet/dist/leaflet.css"
-import { useEffect, useState } from "react"
+import { useEffect, useState, useRef } from "react"
 import MarkerClusterGroup from "react-leaflet-cluster"
 import "leaflet.markercluster/dist/MarkerCluster.css"
 import "leaflet.markercluster/dist/MarkerCluster.Default.css"
@@ -35,6 +35,7 @@ function App() {
 
   const [isLoadingLocation, setIsLoadingLocation] = useState(true)
   const [locationError, setLocationError] = useState(null)
+  const latestRequestId = useRef(0)
 
   // queries trees within the map's current visible rectangle
   function fetchTreesByBounds(bounds) {
@@ -43,11 +44,15 @@ function App() {
     const east = bounds.getEast()
     const west = bounds.getWest()
 
+    const requestId = ++latestRequestId.current
+
     fetch(
       `http://localhost:3001/api/trees/in-bounds?north=${north}&south=${south}&east=${east}&west=${west}`,
     )
       .then((res) => res.json())
       .then((data) => {
+        if (requestId !== latestRequestId.current) return
+
         setTrees(data)
       })
       .catch((err) => console.error("failed to fetch trees:", err))
@@ -133,8 +138,8 @@ function App() {
                 center={userLocation}
                 radius={20}
                 pathOptions={{
-                  color: "red",
-                  fillColor: "red",
+                  color: "#7fa8b3",
+                  fillColor: "#7fa8b3",
                   fillOpacity: 0.8,
                 }}
               />
@@ -144,19 +149,27 @@ function App() {
               url="http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
             />
             {/* render each nearby tree as a map marker */}
-            <MarkerClusterGroup disableClusteringAtZoom={16}>
+            <MarkerClusterGroup
+              disableClusteringAtZoom={16}
+              maxZoom={19}
+              spiderfyOnMaxZoom={false}
+              zoomToBoundsOnClick={true}
+            >
               {trees.map((tree) => {
-                const isSelected = selectedTree && selectedTree.id === tree.id
+                const isSelected = selectedTree?._id === tree._id
                 return (
                   <CircleMarker
-                    key={tree.id}
-                    center={[tree.lat, tree.lng]}
-                    radius={isSelected ? 12 : 7}
+                    key={tree._id}
+                    center={[
+                      tree.location.coordinates[1],
+                      tree.location.coordinates[0],
+                    ]}
+                    radius={isSelected ? 7 : 4}
                     pathOptions={{
-                      color: "white",
-                      weight: 2,
-                      fillColor: isSelected ? "#FF5722" : "#2E7D32",
-                      fillOpacity: 0.9,
+                      color: isSelected ? "#C87941" : "#58735F",
+                      fillColor: isSelected ? "#C87941" : "#58735F",
+                      fillOpacity: isSelected ? 0.9 : 0.6,
+                      weight: isSelected ? 2 : 1,
                     }}
                     eventHandlers={{
                       click: () => {
