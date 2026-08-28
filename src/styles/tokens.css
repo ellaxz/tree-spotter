@@ -1,0 +1,14 @@
+@theme {
+  --color-brand: #58735f;
+  --color-brand-dark: #3f5445;
+  --color-surface: #f3f1ea;
+  --color-border: #ddd8c8;
+  --color-text: #2a2e27;
+  --color-text-muted: #697169;
+  --color-text-subtle: #a3a08e;
+
+  --font-sans: "DM Sans", sans-serif;
+
+  --radius-panel: 20px;
+  --radius-pill: 9999px;
+}

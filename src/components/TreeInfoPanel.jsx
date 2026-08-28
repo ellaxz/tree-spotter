@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react"
-import { TreePine } from "lucide-react"
+import { TreePine, X, ArrowRight } from "lucide-react"
 
 function TreeInfoPanel({ tree, onClose }) {
   const [imageUrl, setImageUrl] = useState(null)
@@ -27,7 +27,12 @@ function TreeInfoPanel({ tree, onClose }) {
       .then((res) => res.json())
       .then((searchData) => {
         const results = searchData.query.search
-        if (results.length === 0) return
+
+        // cache null when no wikipedia result is found
+        if (results.length === 0) {
+          imageCache.current[tree.scientificName] = null
+          return null
+        }
 
         const pageTitle = results[0].title
 
@@ -37,32 +42,43 @@ function TreeInfoPanel({ tree, onClose }) {
           .then((res) => res.json())
           .then((data) => {
             const foundUrl = data.thumbnail ? data.thumbnail.source : null
+            //cache either the image url or null
             imageCache.current[tree.scientificName] = foundUrl
             setImageUrl(foundUrl)
           })
-          .catch((err) => {
-            console.error("failed to fetch tree image:", err)
-          })
-          .finally(() => {
-            setIsLoadingImage(false)
-          })
+      })
+      .catch((err) => {
+        console.error("failed to fetch tree image:", err)
+      })
+      .finally(() => {
+        setIsLoadingImage(false)
       })
   }, [tree])
 
   if (!tree) {
     return (
-      <div className="p-4">
-        <p>click a tree on the map to see details</p>
+      <div className="p-6 bg-surface h-full">
+        <p className="text-label">Melbourne Urban Forest</p>
+
+        <h2 className="mt-3 text-heading">
+          Explore the trees
+          <br />
+          around you.
+        </h2>
+
+        <p className="mt-4 max-w-56 text-body-muted">
+          Click a tree on the map to find out what it is.
+        </p>
       </div>
     )
   }
 
   const streetViewUrl = `https://www.google.com/maps/@?api=1&map_action=pano&viewpoint=${tree.lat},${tree.lng}`
   return (
-    <div className="h-full box-border">
+    <div className="h-full box-border bg-surface  border border-border overflow-hidden">
       <div className="relative h-64 bg-gray-100 flex items-center justify-center overflow-hidden">
         {isLoadingImage ? (
-          <span className="text-gray-400 text-sm">loading</span>
+          <span className="text-sm text-text-subtle">loading</span>
         ) : imageUrl ? (
           <img
             src={imageUrl}
@@ -70,48 +86,46 @@ function TreeInfoPanel({ tree, onClose }) {
             className="w-full h-full object-cover"
           />
         ) : (
-          <div className="flex flex-col items-center gap-2 text-gray-400">
+          <div className="flex flex-col items-center gap-2 text-text-subtle">
             <TreePine size={32} />
             <span className="text-sm">no image available</span>
           </div>
         )}
         <button
           onClick={onClose}
-          className="absolute top-2 right-2 w-10 h-10 flex items-center justify-center border-none bg-black/40 text-white text-xl rounded-full cursor-pointer"
+          aria-label="close"
+          className="absolute top-3 right-3 close-button"
         >
-          ✕
+          <X size={16} strokeWidth={2} />
         </button>
       </div>
 
-      <div className="p-4">
-        <h3 className="text-xl font-medium text-gray-900 m-0">
-          {tree.commonName}
-        </h3>
-        <p className="text-sm italic text-gray-500 mt-1 mb-3">
-          {tree.scientificName}
-        </p>
+      <div className="p-5">
+        <h3 className="text-title m-0">{tree.commonName}</h3>
+        <p className="text-scientific mt-1 mb-3">{tree.scientificName}</p>
+        <div className="accent-divider mb-4" />
 
-        <p className="text-sm text-gray-600 leading-relaxed">
-          Planted in {tree.yearPlanted}, in {tree.precinct}. Expected to live
-          another {tree.usefulLifeExpectancy}.
-        </p>
+        <div className="space-y-3 text-body-muted">
+          <p>
+            Planted in {tree.yearPlanted}, in {tree.precinct}.
+          </p>
+          <p>Life expectancy: {tree.usefulLifeExpectancy}</p>
+        </div>
 
-        <div className="mt-4 pt-3 border-t border-gray-100">
+        <div className="mt-4 pt-3.5 border-t border-border">
           <a
             href={streetViewUrl}
             target="_blank"
             rel="noopener noreferrer"
-            className="text-sm text-green-700 no-underline"
+            className="inline-flex items-center gap-1.5 text-sm text-brand no-underline hover:underline"
           >
             view on street view
+            <ArrowRight size={16} strokeWidth={1.8} />
           </a>
 
-          <p>
-            <small className="text-gray-500">
-              Some data (planting year, life expectancy, street view imagery)
-              may be approximate or based on periodic assessments rather than
-              current, tree-specific conditions.
-            </small>
+          <p className="mt-4 text-disclaimer">
+            Tree information comes from City of Melbourne open data and may
+            reflect previous assessments.
           </p>
         </div>
       </div>

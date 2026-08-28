@@ -68,7 +68,7 @@ export default function createTreesRouter(treeCollection) {
             },
           },
         })
-        .limit(500)
+        .limit(5000)
         .toArray()
 
       res.json(treesInBounds)

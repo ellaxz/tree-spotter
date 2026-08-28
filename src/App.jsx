@@ -33,6 +33,9 @@ function App() {
   const [selectedTree, setSelectedTree] = useState(null)
   const [layoutVersion, setLayoutVersion] = useState(0) // bump this to tell the map to recheck its size
 
+  const [isLoadingLocation, setIsLoadingLocation] = useState(true)
+  const [locationError, setLocationError] = useState(null)
+
   // queries trees within the map's current visible rectangle
   function fetchTreesByBounds(bounds) {
     const north = bounds.getNorth()
@@ -56,9 +59,14 @@ function App() {
         const lat = position.coords.latitude
         const lng = position.coords.longitude
         setUserLocation([lat, lng])
+        setIsLoadingLocation(false)
       },
       (error) => {
         console.error("geolocation failed:", error)
+        setLocationError(
+          "unable to access your location. you can still explore trees in the default area",
+        )
+        setIsLoadingLocation(false)
       },
     )
   }, [])
@@ -90,8 +98,20 @@ function App() {
         <Separator className="hidden md:block w-1 bg-gray-200 hover:bg-green-600 cursor-col-resize transition-colors" />
 
         <Panel className="relative">
+          {isLoadingLocation && (
+            <div className="absolute inset-0 z-1200 flex items-center justify-center bg-white/70">
+              <span className="text-gray-700 text-sm"> locating...</span>
+            </div>
+          )}
+
+          {!isLoadingLocation && locationError && (
+            <div className="absolute top-2 left-1/2 -translate-x-1/2 z-1200 bg-yellow-50 border border-yellow-300 text-yellow-800 text-sm px-3 py-2 rounded-md shadow-sm max-w-xs text-center">
+              {locationError}
+            </div>
+          )}
+
           {selectedTree && (
-            <div className="md:hidden absolute bottom-0 left-0 right-0 z-[1000] bg-white rounded-t-2xl shadow-lg max-h-[60vh] overflow-y-auto">
+            <div className="md:hidden absolute bottom-0 left-0 right-0 z-1000 bg-white rounded-t-2xl shadow-lg max-h-[60vh] overflow-y-auto">
               <TreeInfoPanel
                 tree={selectedTree}
                 onClose={() => setSelectedTree(null)}
