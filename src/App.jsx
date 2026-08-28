@@ -27,6 +27,8 @@ L.Icon.Default.mergeOptions({
 // fallback center used before we get the user's real location
 const MELBOURNE_CENTER = [-37.808, 144.965]
 
+const API_URL = import.meta.env.VITE_API_URL
+
 function App() {
   const [trees, setTrees] = useState([])
   const [userLocation, setUserLocation] = useState(null)
@@ -37,17 +39,30 @@ function App() {
   const [locationError, setLocationError] = useState(null)
   const latestRequestId = useRef(0)
 
-  // queries trees within the map's current visible rectangle
-  function fetchTreesByBounds(bounds) {
-    const north = bounds.getNorth()
-    const south = bounds.getSouth()
-    const east = bounds.getEast()
-    const west = bounds.getWest()
+  function normalizeLng(lng) {
+    return ((((lng + 180) % 360) + 360) % 360) - 180
+  }
+
+  function clampLat(lat) {
+    return Math.max(-90, Math.min(90, lat))
+  }
+
+  // // query trees within the map's current visible bounds
+  function fetchTreesByBounds(bounds, zoom) {
+    if (zoom < 10) {
+      setTrees([])
+      return
+    }
+
+    const north = clampLat(bounds.getNorth())
+    const south = clampLat(bounds.getSouth())
+    const east = normalizeLng(bounds.getEast())
+    const west = normalizeLng(bounds.getWest())
 
     const requestId = ++latestRequestId.current
 
     fetch(
-      `http://localhost:3001/api/trees/in-bounds?north=${north}&south=${south}&east=${east}&west=${west}`,
+      `${API_URL}/api/trees/in-bounds?north=${north}&south=${south}&east=${east}&west=${west}`,
     )
       .then((res) => res.json())
       .then((data) => {
@@ -146,7 +161,7 @@ function App() {
             )}
             <TileLayer
               attribution="&copy;OpenStreetMap contributors"
-              url="http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+              url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
             />
             {/* render each nearby tree as a map marker */}
             <MarkerClusterGroup

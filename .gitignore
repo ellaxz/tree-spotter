@@ -26,3 +26,7 @@ dist-ssr
 data-raw/
 
 server/.env
+.env
+
+.firebaserc
+.firebase/

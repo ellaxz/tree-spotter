@@ -6,7 +6,8 @@ function InitialBoundsHandler({ onReady }) {
 
   useEffect(() => {
     const bounds = map.getBounds()
-    onReady(bounds)
+    const zoom = map.getZoom()
+    onReady(bounds, zoom)
   }, [map])
 
   return null

@@ -8,31 +8,19 @@ import createTreesRouter from "./routes/trees.js"
 
 dotenv.config()
 
+const app = express()
+const PORT = process.env.PORT || 3001
+
 const uri = process.env.MONGODB_URI
+
+if (!uri) {
+  throw new Error("MONGODB_URI environment variable is missing")
+}
+
 const client = new MongoClient(uri)
 
-const app = express()
-const PORT = 3001
-
 app.use(cors())
-
-let treesCollection
-
-async function startServer() {
-  await client.connect()
-  const db = client.db("treespotter")
-  treesCollection = db.collection("trees")
-  console.log("connected to mongodb")
-
-  const count = await treesCollection.countDocuments()
-  console.log("total trees in collection:", count)
-  //treesCollection must exist by this point
-  app.use("/api/trees", createTreesRouter(treesCollection))
-
-  app.listen(PORT, () => {
-    console.log(`server running on http://localhost:${PORT}`)
-  })
-}
+app.use(express.json())
 
 // a simple test route to confirm the server is working
 app.get("/", (req, res) => {
@@ -49,5 +37,28 @@ app.get("/test", (req, res) => {
 
   res.send("this is a test route")
 })
+
+async function startServer() {
+  try {
+    await client.connect()
+
+    const db = client.db("treespotter")
+    const treesCollection = db.collection("trees")
+    console.log("connected to mongodb")
+
+    const count = await treesCollection.countDocuments()
+    console.log("total trees in collection:", count)
+
+    //treesCollection must exist by this point
+    app.use("/api/trees", createTreesRouter(treesCollection))
+
+    app.listen(PORT, "0.0.0.0", () => {
+      console.log(`server running on port ${PORT}`)
+    })
+  } catch (error) {
+    console.error("failed to start server", error)
+    process.exit(1)
+  }
+}
 
 startServer()

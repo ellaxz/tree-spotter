@@ -4,11 +4,15 @@ function MapMoveHandler({ onMapMove }) {
   useMapEvents({
     dragend: (e) => {
       const bounds = e.target.getBounds()
-      onMapMove(bounds)
+      // dragging doesn't change zoom but we still read the current
+      // zoom level off the map instance for consistency
+      const zoom = e.target.getZoom()
+      onMapMove(bounds, zoom)
     },
     zoomend: (e) => {
       const bounds = e.target.getBounds()
-      onMapMove(bounds)
+      const zoom = e.target.getZoom()
+      onMapMove(bounds, zoom)
     },
   })
   return null
