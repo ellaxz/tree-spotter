@@ -1,10 +1,10 @@
-// test connection to mongodb
 import express from "express"
 import cors from "cors"
-
 import dotenv from "dotenv"
 import { MongoClient } from "mongodb"
+
 import createTreesRouter from "./routes/trees.js"
+import createAuthRouter from "./routes/auth.js"
 
 dotenv.config()
 
@@ -27,30 +27,30 @@ app.get("/", (req, res) => {
   res.send("treespotter api is running")
 })
 
-app.get("/test", (req, res) => {
-  console.log(req.query)
-  console.log(typeof req.query.lat)
-
-  const latNumber = parseFloat(req.query.lat)
-  console.log(latNumber)
-  console.log(typeof latNumber)
-
-  res.send("this is a test route")
-})
-
 async function startServer() {
   try {
     await client.connect()
 
     const db = client.db("treespotter")
+
     const treesCollection = db.collection("trees")
+    const usersCollection = db.collection("users")
+
     console.log("connected to mongodb")
+
+    await usersCollection.createIndex(
+      {
+        email: 1,
+      },
+      { unique: true },
+    )
 
     const count = await treesCollection.countDocuments()
     console.log("total trees in collection:", count)
 
-    //treesCollection must exist by this point
+    //mount routes only after the database connection succeeds
     app.use("/api/trees", createTreesRouter(treesCollection))
+    app.use("/api/auth", createAuthRouter(usersCollection))
 
     app.listen(PORT, "0.0.0.0", () => {
       console.log(`server running on port ${PORT}`)
