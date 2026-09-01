@@ -1,11 +1,11 @@
 import express from "express"
 
-const router = express.Router()
-
 //treeCollection is passed in because it's only available after
 // the database connection succeed in server/index.js
 
 export default function createTreesRouter(treeCollection) {
+  const router = express.Router()
+
   router.get("/nearby", async (req, res) => {
     const lat = parseFloat(req.query.lat)
     const lng = parseFloat(req.query.lng)
