@@ -37,3 +37,4 @@ server/.env
 .firebaserc
 .firebase/
 
+cookies.txt

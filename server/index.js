@@ -2,6 +2,7 @@ import express from "express"
 import cors from "cors"
 import dotenv from "dotenv"
 import { MongoClient } from "mongodb"
+import cookieParser from "cookie-parser"
 
 import createTreesRouter from "./routes/trees.js"
 import createAuthRouter from "./routes/auth.js"
@@ -21,6 +22,7 @@ const client = new MongoClient(uri)
 
 app.use(cors())
 app.use(express.json())
+app.use(cookieParser())
 
 // a simple test route to confirm the server is working
 app.get("/", (req, res) => {
