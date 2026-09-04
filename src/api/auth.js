@@ -1,5 +1,13 @@
 const API_URL = import.meta.env.VITE_API_URL
 
+async function safeJson(response) {
+  try {
+    return await response.json()
+  } catch {
+    return {}
+  }
+}
+
 export async function getCurrentUser() {
   const response = await fetch(`${API_URL}/api/auth/me`, {
     credentials: "include",
@@ -29,7 +37,7 @@ export async function login(email, password) {
     }),
   })
 
-  const data = await response.json()
+  const data = await safeJson(response)
 
   if (!response.ok) {
     throw new Error(data.error || "login failed")

@@ -15,6 +15,7 @@ import MapMoveHandler from "./components/MapMoveHandler"
 import InitialBoundsHandler from "./components/InitialBoundsHandler"
 import MapResizeHandler from "./components/MapResizeHandler"
 import { useAuth } from "./context/AuthContext.jsx"
+import LoginForm from "./components/LoginForm.jsx"
 
 // fallback center used before we get the user's real location
 const MELBOURNE_CENTER = [-37.808, 144.965]
@@ -93,10 +94,18 @@ function App() {
     <div className="flex flex-col h-screen w-full">
       <header className="hidden md:flex items-center gap-2 px-4 py-3 border-b border-gray-200 bg-white">
         <TreePine size={20} className="text-green-700" />
+
         <span className="text-lg font-medium text-gray-900">TreeSpotter</span>
-        <span className="ml-auto text-sm text-gray-600">
-          {user ? `logged in as ${user.email}` : "not logged in"}
-        </span>
+
+        {user ? (
+          <span className="ml-auto text-sm text-gray-600">
+            logged in as {user.email}
+          </span>
+        ) : (
+          <div className="ml-auto">
+            <LoginForm />
+          </div>
+        )}
       </header>
 
       {/* desktop: drag the separator to resize sidebar vs map */}
