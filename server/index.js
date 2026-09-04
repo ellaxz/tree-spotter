@@ -1,15 +1,9 @@
-import express from "express"
-import cors from "cors"
 import dotenv from "dotenv"
 import { MongoClient } from "mongodb"
-import cookieParser from "cookie-parser"
-
-import createTreesRouter from "./routes/trees.js"
-import createAuthRouter from "./routes/auth.js"
+import createApp from "./app.js"
 
 dotenv.config()
 
-const app = express()
 const PORT = process.env.PORT || 3001
 
 const uri = process.env.MONGODB_URI
@@ -19,15 +13,6 @@ if (!uri) {
 }
 
 const client = new MongoClient(uri)
-
-app.use(cors())
-app.use(express.json())
-app.use(cookieParser())
-
-// a simple test route to confirm the server is working
-app.get("/", (req, res) => {
-  res.send("treespotter api is running")
-})
 
 async function startServer() {
   try {
@@ -49,10 +34,10 @@ async function startServer() {
 
     const count = await treesCollection.countDocuments()
     console.log("total trees in collection:", count)
-
-    //mount routes only after the database connection succeeds
-    app.use("/api/trees", createTreesRouter(treesCollection))
-    app.use("/api/auth", createAuthRouter(usersCollection))
+    const app = createApp({
+      treesCollection,
+      usersCollection,
+    })
 
     app.listen(PORT, "0.0.0.0", () => {
       console.log(`server running on port ${PORT}`)
