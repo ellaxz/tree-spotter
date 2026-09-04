@@ -2,7 +2,7 @@ import { MapContainer, TileLayer, CircleMarker, Circle } from "react-leaflet"
 import { TreePine } from "lucide-react"
 import "leaflet/dist/leaflet.css"
 
-import { useEffect, useState, useRef } from "react"
+import { useState } from "react"
 import MarkerClusterGroup from "react-leaflet-cluster"
 import "leaflet.markercluster/dist/MarkerCluster.css"
 import "leaflet.markercluster/dist/MarkerCluster.Default.css"
@@ -16,75 +16,27 @@ import InitialBoundsHandler from "./components/InitialBoundsHandler"
 import MapResizeHandler from "./components/MapResizeHandler"
 import { useAuth } from "./context/AuthContext.jsx"
 import LoginForm from "./components/LoginForm.jsx"
+import useGeolocation from "./hooks/useGeolocation.js"
+import useTreesInBounds from "./hooks/useTreesInBounds.js"
 
 // fallback center used before we get the user's real location
 const MELBOURNE_CENTER = [-37.808, 144.965]
 
-const API_URL = import.meta.env.VITE_API_URL
-
 function App() {
   const { user, loading } = useAuth()
 
-  const [trees, setTrees] = useState([])
-  const [userLocation, setUserLocation] = useState(null)
+  const { trees, fetchTreesByBounds } = useTreesInBounds()
   const [selectedTree, setSelectedTree] = useState(null)
   const [layoutVersion, setLayoutVersion] = useState(0) // bump this to tell the map to recheck its size
 
-  const [isLoadingLocation, setIsLoadingLocation] = useState(true)
-  const [locationError, setLocationError] = useState(null)
-  const latestRequestId = useRef(0)
-
-  function normalizeLng(lng) {
-    return ((((lng + 180) % 360) + 360) % 360) - 180
-  }
-
-  function clampLat(lat) {
-    return Math.max(-90, Math.min(90, lat))
-  }
-
-  // query trees within the map's current visible bounds
-  function fetchTreesByBounds(bounds, zoom) {
-    if (zoom < 10) {
-      setTrees([])
-      return
-    }
-
-    const north = clampLat(bounds.getNorth())
-    const south = clampLat(bounds.getSouth())
-    const east = normalizeLng(bounds.getEast())
-    const west = normalizeLng(bounds.getWest())
-
-    const requestId = ++latestRequestId.current
-
-    fetch(
-      `${API_URL}/api/trees/in-bounds?north=${north}&south=${south}&east=${east}&west=${west}`,
-    )
-      .then((res) => res.json())
-      .then((data) => {
-        if (requestId !== latestRequestId.current) return
-
-        setTrees(data)
-      })
-      .catch((err) => console.error("failed to fetch trees:", err))
-  }
-
-  useEffect(() => {
-    navigator.geolocation.getCurrentPosition(
-      (position) => {
-        const lat = position.coords.latitude
-        const lng = position.coords.longitude
-        setUserLocation([lat, lng])
-        setIsLoadingLocation(false)
-      },
-      (error) => {
-        console.error("geolocation failed:", error)
-        setLocationError(
-          "unable to access your location. you can still explore trees in the default area",
-        )
-        setIsLoadingLocation(false)
-      },
-    )
-  }, [])
+  const {
+    userLocation,
+    isLoadingLocation,
+    locationError,
+    followUser,
+    setFollowUser,
+    locateNow,
+  } = useGeolocation()
 
   if (loading) {
     return <p>checking session..</p>
@@ -153,10 +105,13 @@ function App() {
             zoom={16}
             style={{ height: "100%", width: "100%" }}
           >
-            <MapMoveHandler onMapMove={fetchTreesByBounds} />
+            <MapMoveHandler
+              onMapMove={fetchTreesByBounds}
+              onUserMove={() => setFollowUser(false)}
+            />
             <InitialBoundsHandler onReady={fetchTreesByBounds} />
-            <RecenterMap position={userLocation} />
-            <LocateButton onLocate={setUserLocation} />
+            <RecenterMap position={userLocation} followUser={followUser} />
+            <LocateButton onLocate={locateNow} />
             <MapResizeHandler trigger={layoutVersion} />
             {userLocation && (
               <Circle
@@ -175,8 +130,8 @@ function App() {
             />
             {/* render each nearby tree as a map marker */}
             <MarkerClusterGroup
-              disableClusteringAtZoom={16}
-              maxZoom={19}
+              disableClusteringAtZoom={18}
+              maxClusterRadius={60}
               spiderfyOnMaxZoom={false}
               zoomToBoundsOnClick={true}
             >
