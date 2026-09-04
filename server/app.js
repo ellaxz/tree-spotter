@@ -8,9 +8,20 @@ import createTreesRouter from "./routes/trees.js"
 export default function createApp({ treesCollection, usersCollection }) {
   const app = express()
 
+  const allowedOrigins = [
+    "http://localhost:5173",
+    "https://treespotter.web.app",
+  ]
+
   app.use(
     cors({
-      origin: "http://localhost:5173",
+      origin: (origin, callback) => {
+        if (!origin || allowedOrigins.includes(origin)) {
+          callback(null, true)
+        } else {
+          callback(new Error("not allowed by cors"))
+        }
+      },
       credentials: true,
     }),
   )
