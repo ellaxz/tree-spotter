@@ -26,19 +26,27 @@ function App() {
     locateNow,
   } = useGeolocation()
 
+  const handleLayoutChanged = () => {
+    setLayoutVersion((v) => v + 1)
+  }
+
+  const handleUserMove = () => {
+    setFollowUser(false)
+  }
+
   if (loading) {
     return <p>checking session..</p>
   }
 
   return (
     <div className="flex flex-col h-screen w-full">
-      <header className="hidden md:flex items-center gap-2 px-4 py-3 border-b border-gray-200 bg-white">
-        <TreePine size={20} className="text-green-700" />
+      <header className="app-header">
+        <TreePine size={20} className="text-brand" />
 
-        <span className="text-lg font-medium text-gray-900">TreeSpotter</span>
+        <span className="text-heading">TreeSpotter</span>
 
         {user ? (
-          <span className="ml-auto text-sm text-gray-600">
+          <span className="ml-auto text-sm text-text-muted">
             logged in as {user.email}
           </span>
         ) : (
@@ -52,36 +60,34 @@ function App() {
       <Group
         orientation="horizontal"
         className="flex-1"
-        onLayoutChanged={() => setLayoutVersion((v) => v + 1)} // recheck the map size when sidebar width changed
+        onLayoutChanged={handleLayoutChanged} // recheck the map size when sidebar width changed
       >
         <Panel
           defaultSize="20%"
           minSize="15%"
           maxSize="40%"
-          className="hidden md:block border-r border-gray-200"
+          className="desktop-tree-panel"
         >
           <TreeInfoPanel
             tree={selectedTree}
             onClose={() => setSelectedTree(null)}
           />
         </Panel>
-        <Separator className="hidden md:block w-1 bg-gray-200 hover:bg-green-600 cursor-col-resize transition-colors" />
+        <Separator className="resize-separator" />
 
         <Panel className="relative">
           {isLoadingLocation && (
-            <div className="absolute inset-0 z-1200 flex items-center justify-center bg-white/70">
-              <span className="text-gray-700 text-sm"> locating...</span>
+            <div className="location-loading-overlay">
+              <span className="text-text-muted text-sm"> locating...</span>
             </div>
           )}
 
           {!isLoadingLocation && locationError && (
-            <div className="absolute top-2 left-1/2 -translate-x-1/2 z-1200 bg-yellow-50 border border-yellow-300 text-yellow-800 text-sm px-3 py-2 rounded-md shadow-sm max-w-xs text-center">
-              {locationError}
-            </div>
+            <div className="location-error-banner">{locationError}</div>
           )}
 
           {selectedTree && (
-            <div className="md:hidden absolute bottom-0 left-0 right-0 z-1000 bg-white rounded-t-2xl shadow-lg max-h-[60vh] overflow-y-auto">
+            <div className="mobile-tree-panel">
               <TreeInfoPanel
                 tree={selectedTree}
                 onClose={() => setSelectedTree(null)}
@@ -95,7 +101,7 @@ function App() {
             onSelectTree={setSelectedTree}
             userLocation={userLocation}
             followUser={followUser}
-            onUserMove={() => setFollowUser(false)}
+            onUserMove={handleUserMove}
             onLocate={locateNow}
             fetchTreesByBounds={fetchTreesByBounds}
             layoutVersion={layoutVersion}

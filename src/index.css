@@ -1,6 +1,7 @@
 @import "tailwindcss";
 @import "./styles/tokens.css";
 @import "./styles/panel.css";
+@import "./styles/app.css";
 
 body {
   margin: 0;
