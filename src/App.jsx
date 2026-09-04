@@ -1,26 +1,14 @@
-import { MapContainer, TileLayer, CircleMarker, Circle } from "react-leaflet"
 import { TreePine } from "lucide-react"
-import "leaflet/dist/leaflet.css"
-
 import { useState } from "react"
-import MarkerClusterGroup from "react-leaflet-cluster"
-import "leaflet.markercluster/dist/MarkerCluster.css"
-import "leaflet.markercluster/dist/MarkerCluster.Default.css"
 import { Group, Panel, Separator } from "react-resizable-panels"
 
-import RecenterMap from "./components/RecenterMap"
-import LocateButton from "./components/LocateButton"
 import TreeInfoPanel from "./components/TreeInfoPanel"
-import MapMoveHandler from "./components/MapMoveHandler"
-import InitialBoundsHandler from "./components/InitialBoundsHandler"
-import MapResizeHandler from "./components/MapResizeHandler"
-import { useAuth } from "./context/AuthContext.jsx"
 import LoginForm from "./components/LoginForm.jsx"
+import TreeMap from "./components/TreeMap.jsx"
+
 import useGeolocation from "./hooks/useGeolocation.js"
 import useTreesInBounds from "./hooks/useTreesInBounds.js"
-
-// fallback center used before we get the user's real location
-const MELBOURNE_CENTER = [-37.808, 144.965]
+import { useAuth } from "./context/AuthContext.jsx"
 
 function App() {
   const { user, loading } = useAuth()
@@ -100,67 +88,18 @@ function App() {
               />
             </div>
           )}
-          <MapContainer
-            center={userLocation || MELBOURNE_CENTER}
-            zoom={16}
-            style={{ height: "100%", width: "100%" }}
-          >
-            <MapMoveHandler
-              onMapMove={fetchTreesByBounds}
-              onUserMove={() => setFollowUser(false)}
-            />
-            <InitialBoundsHandler onReady={fetchTreesByBounds} />
-            <RecenterMap position={userLocation} followUser={followUser} />
-            <LocateButton onLocate={locateNow} />
-            <MapResizeHandler trigger={layoutVersion} />
-            {userLocation && (
-              <Circle
-                center={userLocation}
-                radius={20}
-                pathOptions={{
-                  color: "#7fa8b3",
-                  fillColor: "#7fa8b3",
-                  fillOpacity: 0.8,
-                }}
-              />
-            )}
-            <TileLayer
-              attribution="&copy;OpenStreetMap contributors"
-              url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-            />
-            {/* render each nearby tree as a map marker */}
-            <MarkerClusterGroup
-              disableClusteringAtZoom={18}
-              maxClusterRadius={60}
-              spiderfyOnMaxZoom={false}
-              zoomToBoundsOnClick={true}
-            >
-              {trees.map((tree) => {
-                const isSelected = selectedTree?._id === tree._id
-                return (
-                  <CircleMarker
-                    key={tree._id}
-                    center={[
-                      tree.location.coordinates[1],
-                      tree.location.coordinates[0],
-                    ]}
-                    radius={isSelected ? 7 : 4}
-                    pathOptions={{
-                      color: isSelected ? "#C87941" : "#58735F",
-                      fillColor: isSelected ? "#C87941" : "#58735F",
-                      fillOpacity: isSelected ? 0.9 : 0.6,
-                      weight: isSelected ? 2 : 1,
-                    }}
-                    eventHandlers={{
-                      click: () => {
-                        setSelectedTree(tree)
-                      },
-                    }}
-                  />
-                )
-              })}
-            </MarkerClusterGroup>
-          </MapContainer>
+
+          <TreeMap
+            trees={trees}
+            selectedTree={selectedTree}
+            onSelectTree={setSelectedTree}
+            userLocation={userLocation}
+            followUser={followUser}
+            onUserMove={() => setFollowUser(false)}
+            onLocate={locateNow}
+            fetchTreesByBounds={fetchTreesByBounds}
+            layoutVersion={layoutVersion}
+          />
         </Panel>
       </Group>
     </div>
