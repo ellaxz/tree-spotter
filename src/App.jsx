@@ -1,7 +1,7 @@
 import { MapContainer, TileLayer, CircleMarker, Circle } from "react-leaflet"
 import { TreePine } from "lucide-react"
-import L from "leaflet"
 import "leaflet/dist/leaflet.css"
+
 import { useEffect, useState, useRef } from "react"
 import MarkerClusterGroup from "react-leaflet-cluster"
 import "leaflet.markercluster/dist/MarkerCluster.css"
@@ -14,15 +14,7 @@ import TreeInfoPanel from "./components/TreeInfoPanel"
 import MapMoveHandler from "./components/MapMoveHandler"
 import InitialBoundsHandler from "./components/InitialBoundsHandler"
 import MapResizeHandler from "./components/MapResizeHandler"
-
-// fix for leaflet's default marker icon not showing up under Vite/bundlers
-delete L.Icon.Default.prototype._getIconUrl
-L.Icon.Default.mergeOptions({
-  iconRetinaUrl:
-    "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png",
-  iconUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png",
-  shadowUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png",
-})
+import { useAuth } from "./context/AuthContext.jsx"
 
 // fallback center used before we get the user's real location
 const MELBOURNE_CENTER = [-37.808, 144.965]
@@ -30,6 +22,8 @@ const MELBOURNE_CENTER = [-37.808, 144.965]
 const API_URL = import.meta.env.VITE_API_URL
 
 function App() {
+  const { user, loading } = useAuth()
+
   const [trees, setTrees] = useState([])
   const [userLocation, setUserLocation] = useState(null)
   const [selectedTree, setSelectedTree] = useState(null)
@@ -47,7 +41,7 @@ function App() {
     return Math.max(-90, Math.min(90, lat))
   }
 
-  // // query trees within the map's current visible bounds
+  // query trees within the map's current visible bounds
   function fetchTreesByBounds(bounds, zoom) {
     if (zoom < 10) {
       setTrees([])
@@ -91,11 +85,18 @@ function App() {
     )
   }, [])
 
+  if (loading) {
+    return <p>checking session..</p>
+  }
+
   return (
     <div className="flex flex-col h-screen w-full">
       <header className="hidden md:flex items-center gap-2 px-4 py-3 border-b border-gray-200 bg-white">
         <TreePine size={20} className="text-green-700" />
         <span className="text-lg font-medium text-gray-900">TreeSpotter</span>
+        <span className="ml-auto text-sm text-gray-600">
+          {user ? `logged in as ${user.email}` : "not logged in"}
+        </span>
       </header>
 
       {/* desktop: drag the separator to resize sidebar vs map */}
