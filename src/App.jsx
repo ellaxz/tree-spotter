@@ -3,7 +3,7 @@ import { useState } from "react"
 import { Group, Panel, Separator } from "react-resizable-panels"
 
 import TreeInfoPanel from "./components/TreeInfoPanel"
-import LoginForm from "./components/LoginForm.jsx"
+
 import TreeMap from "./components/TreeMap.jsx"
 
 import useGeolocation from "./hooks/useGeolocation.js"
@@ -11,9 +11,10 @@ import useTreesInBounds from "./hooks/useTreesInBounds.js"
 import { useAuth } from "./context/AuthContext.jsx"
 import useIsDesktop from "./hooks/useIsDesktop.js"
 import LocationStatus from "./components/LocationStatus.jsx"
+import AuthPanel from "./components/AuthPanel.jsx"
 
 function App() {
-  const { user, loading } = useAuth()
+  const { user, loading, logout } = useAuth()
   const isDesktop = useIsDesktop()
 
   const { trees, fetchTreesByBounds } = useTreesInBounds()
@@ -51,12 +52,22 @@ function App() {
             <span className="text-heading">TreeSpotter</span>
 
             {user ? (
-              <span className="ml-auto text-sm text-text-muted">
-                logged in as {user.email}
-              </span>
+              <div className="ml-auto flex items-center gap-3">
+                <span className="ml-auto text-sm text-text-muted">
+                  logged in as {user.email}
+                </span>
+
+                <button
+                  type="button"
+                  onClick={logout}
+                  className="text-sm text-brand hover:underline"
+                >
+                  log out
+                </button>
+              </div>
             ) : (
               <div className="ml-auto">
-                <LoginForm />
+                <AuthPanel />
               </div>
             )}
           </header>
