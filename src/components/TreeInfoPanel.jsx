@@ -75,8 +75,19 @@ function TreeInfoPanel({ tree, onClose }) {
 
   const streetViewUrl = `https://www.google.com/maps/@?api=1&map_action=pano&viewpoint=${tree.lat},${tree.lng}`
   return (
-    <div className="h-full box-border bg-surface  border border-border overflow-hidden">
-      <div className="relative h-64 bg-gray-100 flex items-center justify-center overflow-hidden">
+    <div className="h-full box-border bg-surface border border-border ">
+      {/* keep the close button visible while the panel scrolls */}
+      <div className="sticky top-0 z-02 h-0 pointer-events-none">
+        <button
+          onClick={onClose}
+          aria-label="close"
+          className="absolute top-3 right-3 close-button pointer-events-auto"
+        >
+          <X size={20} strokeWidth={1.8} />
+        </button>
+      </div>
+
+      <div className="h-64 bg-gray-100 flex items-center justify-center overflow-hidden">
         {isLoadingImage ? (
           <span className="text-sm text-text-subtle">loading</span>
         ) : imageUrl ? (
@@ -91,13 +102,6 @@ function TreeInfoPanel({ tree, onClose }) {
             <span className="text-sm">no image available</span>
           </div>
         )}
-        <button
-          onClick={onClose}
-          aria-label="close"
-          className="absolute top-3 right-3 close-button"
-        >
-          <X size={16} strokeWidth={2} />
-        </button>
       </div>
 
       <div className="p-5">
