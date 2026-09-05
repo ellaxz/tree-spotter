@@ -114,6 +114,15 @@ function App() {
             fetchTreesByBounds={fetchTreesByBounds}
             layoutVersion={layoutVersion}
           />
+
+          {selectedTree && (
+            <div className="mobile-tree-panel">
+              <TreeInfoPanel
+                tree={selectedTree}
+                onClose={() => setSelectedTree(null)}
+              />
+            </div>
+          )}
         </div>
       )}
     </div>
