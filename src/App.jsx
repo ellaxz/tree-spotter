@@ -9,9 +9,12 @@ import TreeMap from "./components/TreeMap.jsx"
 import useGeolocation from "./hooks/useGeolocation.js"
 import useTreesInBounds from "./hooks/useTreesInBounds.js"
 import { useAuth } from "./context/AuthContext.jsx"
+import useIsDesktop from "./hooks/useIsDesktop.js"
+import LocationStatus from "./components/LocationStatus.jsx"
 
 function App() {
   const { user, loading } = useAuth()
+  const isDesktop = useIsDesktop()
 
   const { trees, fetchTreesByBounds } = useTreesInBounds()
   const [selectedTree, setSelectedTree] = useState(null)
@@ -39,61 +42,66 @@ function App() {
   }
 
   return (
-    <div className="flex flex-col h-screen w-full">
-      <header className="app-header">
-        <TreePine size={20} className="text-brand" />
+    <div className="h-dvh w-full overflow-hidden">
+      {isDesktop ? (
+        <div className="flex h-full flex-col">
+          <header className="app-header">
+            <TreePine size={20} className="text-brand" />
 
-        <span className="text-heading">TreeSpotter</span>
+            <span className="text-heading">TreeSpotter</span>
 
-        {user ? (
-          <span className="ml-auto text-sm text-text-muted">
-            logged in as {user.email}
-          </span>
-        ) : (
-          <div className="ml-auto">
-            <LoginForm />
-          </div>
-        )}
-      </header>
-
-      {/* desktop: drag the separator to resize sidebar vs map */}
-      <Group
-        orientation="horizontal"
-        className="flex-1"
-        onLayoutChanged={handleLayoutChanged} // recheck the map size when sidebar width changed
-      >
-        <Panel
-          defaultSize="20%"
-          minSize="15%"
-          maxSize="40%"
-          className="desktop-tree-panel"
-        >
-          <TreeInfoPanel
-            tree={selectedTree}
-            onClose={() => setSelectedTree(null)}
-          />
-        </Panel>
-        <Separator className="resize-separator" />
-
-        <Panel className="relative">
-          {isLoadingLocation && (
-            <div className="location-loading-overlay">
-              <span className="text-text-muted text-sm"> locating...</span>
-            </div>
-          )}
-
-          {!isLoadingLocation && locationError && (
-            <div className="location-error-banner">{locationError}</div>
-          )}
-
-          {selectedTree && (
-            <div className="mobile-tree-panel">
+            {user ? (
+              <span className="ml-auto text-sm text-text-muted">
+                logged in as {user.email}
+              </span>
+            ) : (
+              <div className="ml-auto">
+                <LoginForm />
+              </div>
+            )}
+          </header>
+          <Group
+            orientation="horizontal"
+            className="flex-1"
+            onLayoutChanged={handleLayoutChanged} // recheck the map size when sidebar width changed
+          >
+            <Panel
+              defaultSize="20%"
+              minSize="15%"
+              maxSize="40%"
+              className="desktop-tree-panel"
+            >
               <TreeInfoPanel
                 tree={selectedTree}
                 onClose={() => setSelectedTree(null)}
               />
-            </div>
-          )}
+            </Panel>
+
+            <Separator className="resize-separator" />
+
+            <Panel className="relative">
+              <LocationStatus
+                loading={isLoadingLocation}
+                error={locationError}
+              />
+
+              <TreeMap
+                trees={trees}
+                selectedTree={selectedTree}
+                onSelectTree={setSelectedTree}
+                userLocation={userLocation}
+                followUser={followUser}
+                onUserMove={handleUserMove}
+                onLocate={locateNow}
+                fetchTreesByBounds={fetchTreesByBounds}
+                layoutVersion={layoutVersion}
+              />
+            </Panel>
+          </Group>
+        </div>
+      ) : (
+        <div className="relative h-full w-full">
+          <LocationStatus loading={isLoadingLocation} error={locationError} />
 
           <TreeMap
             trees={trees}
@@ -106,10 +114,9 @@ function App() {
             fetchTreesByBounds={fetchTreesByBounds}
             layoutVersion={layoutVersion}
           />
-        </Panel>
-      </Group>
+        </div>
+      )}
     </div>
   )
 }
-
 export default App
