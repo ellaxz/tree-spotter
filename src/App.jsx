@@ -1,4 +1,4 @@
-import { TreePine, X } from "lucide-react"
+import { TreePine, X, UserRound } from "lucide-react"
 import { useState } from "react"
 import { Group, Panel, Separator } from "react-resizable-panels"
 
@@ -68,7 +68,6 @@ function App() {
               </div>
             ) : (
               <div className="ml-auto">
-                {/* <AuthPanel /> */}
                 <button
                   type="button"
                   onClick={() => setAuthOpen(true)}
@@ -137,29 +136,49 @@ function App() {
           </Group>
         </div>
       ) : (
-        <div className="relative h-full w-full">
-          <LocationStatus loading={isLoadingLocation} error={locationError} />
-
-          <TreeMap
-            trees={trees}
-            selectedTree={selectedTree}
-            onSelectTree={setSelectedTree}
-            userLocation={userLocation}
-            followUser={followUser}
-            onUserMove={handleUserMove}
-            onLocate={locateNow}
-            fetchTreesByBounds={fetchTreesByBounds}
-            layoutVersion={layoutVersion}
-          />
-
-          {selectedTree && (
-            <div className="mobile-tree-panel">
-              <TreeInfoPanel
-                tree={selectedTree}
-                onClose={() => setSelectedTree(null)}
-              />
+        <div className="flex h-full w-full flex-col">
+          <div className="mobile-header">
+            <div className="flex items-center gap-2">
+              <TreePine size={20} className="text-brand" />
+              <span className="text-heading">TreeSpotter</span>
             </div>
-          )}
+
+            <button
+              type="button"
+              onClick={() => {
+                setSelectedTree(null)
+                setAuthOpen(true)
+              }}
+              className="mobile-account-button"
+              aria-label="Open Account"
+            >
+              <UserRound size={20} />
+            </button>
+          </div>
+          <div className="relative min-h-0 flex-1">
+            <LocationStatus loading={isLoadingLocation} error={locationError} />
+
+            <TreeMap
+              trees={trees}
+              selectedTree={selectedTree}
+              onSelectTree={setSelectedTree}
+              userLocation={userLocation}
+              followUser={followUser}
+              onUserMove={handleUserMove}
+              onLocate={locateNow}
+              fetchTreesByBounds={fetchTreesByBounds}
+              layoutVersion={layoutVersion}
+            />
+
+            {selectedTree && (
+              <div className="mobile-tree-panel">
+                <TreeInfoPanel
+                  tree={selectedTree}
+                  onClose={() => setSelectedTree(null)}
+                />
+              </div>
+            )}
+          </div>
         </div>
       )}
     </div>
