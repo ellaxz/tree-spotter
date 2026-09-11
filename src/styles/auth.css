@@ -66,6 +66,23 @@
     rounded-full text-text hover:bg-border/40;
 }
 
+@utility mobile-auth-panel {
+  @apply absolute bottom-0 left-0 right-0 z-1000
+    max-h-[85dvh] overflow-y-auto
+    rounded-t-2xl border-t border-border
+    bg-surface px-5 pt-3 pb-6;
+}
+
+@utility mobile-auth-toolbar {
+  @apply flex h-8 items-start justify-end;
+}
+
+@utility mobile-auth-close {
+  @apply flex h-9 w-9 items-center justify-center
+    rounded-full text-text-muted
+    hover:bg-border/40 hover:text-text;
+}
+
 .auth-field label {
   @apply text-sm font-medium text-text;
 }

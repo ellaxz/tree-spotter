@@ -170,6 +170,22 @@ function App() {
               layoutVersion={layoutVersion}
             />
 
+            {authOpen && (
+              <div className="mobile-auth-panel">
+                <div className="mobile-auth-toolbar">
+                  <button
+                    type="button"
+                    onClick={() => setAuthOpen(false)}
+                    className="mobile-auth-close"
+                    aria-label="Close authentication"
+                  >
+                    <X size={18} />
+                  </button>
+                </div>
+                <AuthPanel onAuthSuccess={() => setAuthOpen(false)} />
+              </div>
+            )}
+
             {selectedTree && (
               <div className="mobile-tree-panel">
                 <TreeInfoPanel
