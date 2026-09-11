@@ -1,4 +1,4 @@
-import { TreePine } from "lucide-react"
+import { TreePine, X } from "lucide-react"
 import { useState } from "react"
 import { Group, Panel, Separator } from "react-resizable-panels"
 
@@ -20,6 +20,7 @@ function App() {
   const { trees, fetchTreesByBounds } = useTreesInBounds()
   const [selectedTree, setSelectedTree] = useState(null)
   const [layoutVersion, setLayoutVersion] = useState(0) // bump this to tell the map to recheck its size
+  const [authOpen, setAuthOpen] = useState(false)
 
   const {
     userLocation,
@@ -67,10 +68,35 @@ function App() {
               </div>
             ) : (
               <div className="ml-auto">
-                <AuthPanel />
+                {/* <AuthPanel /> */}
+                <button
+                  type="button"
+                  onClick={() => setAuthOpen(true)}
+                  className="text-sm font-medium text-brand hover:underline"
+                >
+                  Log in
+                </button>
               </div>
             )}
           </header>
+
+          {authOpen && (
+            <div className="auth-dialog-backdrop">
+              <div className="auth-dialog">
+                <button
+                  type="button"
+                  onClick={() => setAuthOpen(false)}
+                  className="auth-dialog-close"
+                  aria-label="Close authentication"
+                >
+                  <X size={18} />
+                </button>
+
+                <AuthPanel onAuthSuccess={() => setAuthOpen(false)} />
+              </div>
+            </div>
+          )}
+
           <Group
             orientation="horizontal"
             className="flex-1"

@@ -15,13 +15,13 @@ export default function LoginForm() {
     setError("")
 
     if (!email.includes("@")) {
-      setError("please enter a valid email")
+      setError("Please enter a valid email.")
       setSubmitting(false)
       return
     }
 
     if (password.length < 8) {
-      setError("password must be at least 8 characters")
+      setError("Password must be at least 8 characters.")
       setSubmitting(false)
       return
     }
@@ -37,29 +37,35 @@ export default function LoginForm() {
   }
 
   return (
-    <form onSubmit={handleSubmit}>
-      <input
-        type="email"
-        value={email}
-        onChange={(event) => setEmail(event.target.value)}
-        placeholder="Email"
-        autoComplete="email"
-        required
-      />
+    <form onSubmit={handleSubmit} className="auth-form">
+      <div className="auth-field">
+        <label htmlFor="login-email">Email</label>
 
-      <input
-        type="password"
-        value={password}
-        onChange={(event) => setPassword(event.target.value)}
-        placeholder="Password"
-        autoComplete="current-password"
-        required
-      />
+        <input
+          id="login-email"
+          type="email"
+          value={email}
+          onChange={(event) => setEmail(event.target.value)}
+          autoComplete="email"
+          required
+        />
+      </div>
+      <div className="auth-field">
+        <label htmlFor="login-password">Password</label>
+        <input
+          id="login-password"
+          type="password"
+          value={password}
+          onChange={(event) => setPassword(event.target.value)}
+          autoComplete="current-password"
+          required
+        />
+      </div>
 
-      {error && <p>{error}</p>}
+      {error && <p className="auth-error">{error}</p>}
 
-      <button type="submit" disabled={submitting}>
-        {submitting ? "logging in ..." : "log in"}
+      <button type="submit" disabled={submitting} className="auth-submit">
+        {submitting ? "Logging in ..." : "Log in"}
       </button>
     </form>
   )

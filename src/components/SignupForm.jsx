@@ -15,12 +15,12 @@ export default function SignupForm({ onSignupSuccess }) {
     setError("")
 
     if (!email.includes("@")) {
-      setError("please enter a valid email")
+      setError("Please enter a valid email.")
       return
     }
 
     if (password.length < 8) {
-      setError("password must be at least 8 characters")
+      setError("Password must be at least 8 characters.")
       return
     }
     setSubmitting(true)
@@ -39,29 +39,36 @@ export default function SignupForm({ onSignupSuccess }) {
   }
 
   return (
-    <form onSubmit={handleSubmit}>
-      <input
-        type="email"
-        value={email}
-        onChange={(event) => setEmail(event.target.value)}
-        placeholder="Email"
-        autoComplete="email"
-        required
-      />
+    <form onSubmit={handleSubmit} className="auth-form">
+      <div className="auth-field">
+        <label htmlFor="signup-email">Email</label>
+        <input
+          id="signup-email"
+          type="email"
+          value={email}
+          onChange={(event) => setEmail(event.target.value)}
+          autoComplete="email"
+          required
+        />{" "}
+      </div>
 
-      <input
-        type="password"
-        value={password}
-        onChange={(event) => setPassword(event.target.value)}
-        placeholder="password"
-        autoComplete="new-password"
-        required
-      />
+      <div className="auth-field">
+        <label htmlFor="signup-password">Password</label>
 
-      {error && <p>{error}</p>}
+        <input
+          id="signup-password"
+          type="password"
+          value={password}
+          onChange={(event) => setPassword(event.target.value)}
+          autoComplete="new-password"
+          required
+        />
+      </div>
 
-      <button type="submit" disabled={submitting}>
-        {submitting ? "signing up..." : "sign up"}
+      {error && <p className="auth-error">{error}</p>}
+
+      <button type="submit" disabled={submitting} className="auth-submit">
+        {submitting ? "Signing up..." : "Sign up"}
       </button>
     </form>
   )

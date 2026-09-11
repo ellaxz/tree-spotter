@@ -2,6 +2,7 @@
 @import "./styles/tokens.css";
 @import "./styles/panel.css";
 @import "./styles/app.css";
+@import "./styles/auth.css";
 
 body {
   margin: 0;

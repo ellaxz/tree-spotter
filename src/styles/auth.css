@@ -1,0 +1,76 @@
+@utility auth-panel {
+  @apply flex flex-col gap-5;
+}
+
+@utility auth-header {
+  @apply flex flex-col gap-1;
+}
+
+@utility auth-title {
+  @apply text-xl font-semibold text-text;
+}
+
+@utility auth-description {
+  @apply text-sm leading-relaxed text-text-muted;
+}
+
+@utility auth-success {
+  @apply rounded-md border border-border bg-surface
+    px-3 py-2 text-sm text-brand-dark;
+}
+
+@utility auth-form {
+  @apply flex flex-col gap-4;
+}
+
+@utility auth-field {
+  @apply flex flex-col gap-1.5;
+}
+
+@utility auth-error {
+  @apply text-sm text-red-700;
+}
+
+@utility auth-submit {
+  @apply rounded-md bg-brand px-4 py-2.5
+    text-sm font-medium text-surface
+    transition-colors hover:bg-brand-dark
+    disabled:cursor-not-allowed disabled:opacity-60;
+}
+
+@utility auth-switch {
+  @apply text-center text-sm text-text-muted;
+}
+
+@utility auth-dialog-backdrop {
+  @apply fixed inset-0 z-2000
+    flex items-center justify-center
+    bg-black/25 px-4;
+}
+
+@utility auth-dialog {
+  @apply relative w-full max-w-sm
+    rounded-lg border border-border bg-surface
+    p-6;
+}
+
+@utility auth-dialog-close {
+  @apply absolute top-3 right-3
+    flex h-8 w-8 items-center justify-center
+    rounded-full text-text-muted
+    hover:bg-border/50 hover:text-text;
+}
+
+.auth-field label {
+  @apply text-sm font-medium text-text;
+}
+
+.auth-field input {
+  @apply rounded-md border border-border bg-surface
+    px-3 py-2.5 text-sm text-text outline-none
+    transition-colors focus:border-brand;
+}
+
+.auth-switch button {
+  @apply font-medium text-brand hover:underline;
+}
