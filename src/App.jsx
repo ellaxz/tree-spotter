@@ -1,4 +1,4 @@
-import { TreePine, X, UserRound } from "lucide-react"
+import { TreePine, UserRound } from "lucide-react"
 import { useState } from "react"
 import { Group, Panel, Separator } from "react-resizable-panels"
 
@@ -11,8 +11,8 @@ import useTreesInBounds from "./hooks/useTreesInBounds.js"
 import { useAuth } from "./context/AuthContext.jsx"
 import useIsDesktop from "./hooks/useIsDesktop.js"
 import LocationStatus from "./components/LocationStatus.jsx"
-import AuthPanel from "./components/AuthPanel.jsx"
 import AuthDialog from "./components/AuthDialog.jsx"
+import MobileAuthSheet from "./components/MobileAuthSheet.jsx"
 
 function App() {
   const { user, loading, logout } = useAuth()
@@ -156,21 +156,10 @@ function App() {
               layoutVersion={layoutVersion}
             />
 
-            {authOpen && (
-              <div className="mobile-auth-panel">
-                <div className="mobile-auth-toolbar">
-                  <button
-                    type="button"
-                    onClick={() => setAuthOpen(false)}
-                    className="mobile-auth-close"
-                    aria-label="Close authentication"
-                  >
-                    <X size={18} />
-                  </button>
-                </div>
-                <AuthPanel onAuthSuccess={() => setAuthOpen(false)} />
-              </div>
-            )}
+            <MobileAuthSheet
+              open={authOpen}
+              onClose={() => setAuthOpen(false)}
+            />
 
             {selectedTree && (
               <div className="mobile-tree-panel">
