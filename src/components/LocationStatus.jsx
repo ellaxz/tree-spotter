@@ -2,8 +2,8 @@ function LocationStatus({ loading, error }) {
   //show a loading overlay while the browser is trying to get the user's location
   if (loading) {
     return (
-      <div className="location-loading-overlay">
-        <span className="text-text-muted text-sm">locating...</span>
+      <div className="location-loading-status">
+        <span>locating...</span>
       </div>
     )
   }

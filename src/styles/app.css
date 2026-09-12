@@ -14,9 +14,10 @@
     hover:bg-brand cursor-col-resize transition-colors;
 }
 
-@utility location-loading-overlay {
-  @apply absolute inset-0 z-1200 flex items-center justify-center
-    bg-surface/70;
+@utility location-loading-status {
+  @apply absolute top-2 left-1/2 -translate-x-1/2 z-1200
+    rounded-md border border-border bg-surface
+    px-3 py-2 text-sm text-text-muted;
 }
 
 @utility location-error-banner {

@@ -9,8 +9,18 @@ export default function useGeolocation() {
   const hasLocationRef = useRef(false)
 
   useEffect(() => {
+    const fallbackTimer = setTimeout(() => {
+      if (!hasLocationRef.current) {
+        setLocationError(
+          "unable to access your location. you can still explore trees in the default area",
+        )
+        setIsLoadingLocation(false)
+      }
+    }, 12000)
+
     const watchId = navigator.geolocation.watchPosition(
       (position) => {
+        clearTimeout(fallbackTimer)
         const lat = position.coords.latitude
         const lng = position.coords.longitude
 
@@ -21,6 +31,8 @@ export default function useGeolocation() {
         setLocationError(null)
       },
       (error) => {
+        clearTimeout(fallbackTimer)
+
         console.error("geolocation failed", error)
 
         if (!hasLocationRef.current) {
@@ -38,6 +50,7 @@ export default function useGeolocation() {
     )
 
     return () => {
+      clearTimeout(fallbackTimer)
       navigator.geolocation.clearWatch(watchId)
     }
   }, [])
