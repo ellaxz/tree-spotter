@@ -66,11 +66,17 @@
     rounded-full text-text hover:bg-border/40;
 }
 
+@utility mobile-account-button-signed-in {
+  @apply bg-brand text-surface font-medium;
+}
+
 @utility mobile-auth-panel {
   @apply absolute bottom-0 left-0 right-0 z-1000
-    max-h-[85dvh] overflow-y-auto
+    max-h-[85dvh] overflow-y-auto overscroll-y-contain
     rounded-t-2xl border-t border-border
     bg-surface px-5 pt-3 pb-6;
+
+  -webkit-overflow-scrolling: touch;
 }
 
 @utility mobile-auth-toolbar {
@@ -83,14 +89,37 @@
     hover:bg-border/40 hover:text-text;
 }
 
+@utility mobile-account-view {
+  @apply flex flex-col gap-4;
+}
+
+@utility mobile-account-title {
+  @apply text-xl font-semibold text-text;
+}
+
+@utility mobile-account-email {
+  @apply text-sm text-text-muted;
+}
+
+@utility mobile-account-actions {
+  @apply border-t border-border pt-4;
+}
+
+@utility mobile-account-logout {
+  @apply w-full rounded-md border border-border
+    px-4 py-2.5 text-sm font-medium text-text
+    transition-colors hover:bg-border/30;
+}
+
 .auth-field label {
   @apply text-sm font-medium text-text;
 }
 
 .auth-field input {
   @apply rounded-md border border-border bg-surface
-    px-3 py-2.5 text-sm text-text outline-none
-    transition-colors focus:border-brand;
+    px-3 py-2.5 text-base text-text outline-none
+    transition-colors focus:border-brand
+    md:text-sm;
 }
 
 .auth-switch button {

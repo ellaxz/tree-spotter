@@ -2,7 +2,7 @@ import { X } from "lucide-react"
 
 import AuthPanel from "./AuthPanel"
 
-export default function MobileAuthSheet({ open, onClose }) {
+export default function MobileAuthSheet({ open, user, onClose, onLogout }) {
   if (!open) {
     return null
   }
@@ -19,7 +19,25 @@ export default function MobileAuthSheet({ open, onClose }) {
           <X size={18} />
         </button>
       </div>
-      <AuthPanel onAuthSuccess={onClose} />
+
+      {user ? (
+        <div className="flex flex-col gap-1.5">
+          <h2 className="mobile-account-title">Account</h2>
+          <p className="mobile-account-email">{user.email}</p>
+
+          <div className="mobile-account-actions">
+            <button
+              type="button"
+              onClick={onLogout}
+              className="mobile-account-logout"
+            >
+              Log out
+            </button>
+          </div>
+        </div>
+      ) : (
+        <AuthPanel onAuthSuccess={onClose} />
+      )}
     </div>
   )
 }

@@ -135,10 +135,18 @@ function App() {
                 setSelectedTree(null)
                 setAuthOpen(true)
               }}
-              className="mobile-account-button"
-              aria-label="Open Account"
+              className={
+                user
+                  ? "mobile-account-button mobile-account-button-signed-in"
+                  : "mobile-account-button"
+              }
+              aria-label="Open account"
             >
-              <UserRound size={20} />
+              {user ? (
+                <span>{user.email[0].toUpperCase()}</span>
+              ) : (
+                <UserRound size={20} />
+              )}
             </button>
           </div>
           <div className="relative min-h-0 flex-1">
@@ -158,7 +166,9 @@ function App() {
 
             <MobileAuthSheet
               open={authOpen}
+              user={user}
               onClose={() => setAuthOpen(false)}
+              onLogout={logout}
             />
 
             {selectedTree && (
