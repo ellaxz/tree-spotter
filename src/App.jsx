@@ -12,6 +12,7 @@ import { useAuth } from "./context/AuthContext.jsx"
 import useIsDesktop from "./hooks/useIsDesktop.js"
 import LocationStatus from "./components/LocationStatus.jsx"
 import AuthPanel from "./components/AuthPanel.jsx"
+import AuthDialog from "./components/AuthDialog.jsx"
 
 function App() {
   const { user, loading, logout } = useAuth()
@@ -79,22 +80,7 @@ function App() {
             )}
           </header>
 
-          {authOpen && (
-            <div className="auth-dialog-backdrop">
-              <div className="auth-dialog">
-                <button
-                  type="button"
-                  onClick={() => setAuthOpen(false)}
-                  className="auth-dialog-close"
-                  aria-label="Close authentication"
-                >
-                  <X size={18} />
-                </button>
-
-                <AuthPanel onAuthSuccess={() => setAuthOpen(false)} />
-              </div>
-            </div>
-          )}
+          <AuthDialog open={authOpen} onClose={() => setAuthOpen(false)} />
 
           <Group
             orientation="horizontal"
