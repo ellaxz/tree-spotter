@@ -15,14 +15,12 @@
 }
 
 @utility location-loading-status {
-  @apply absolute top-2 left-1/2 -translate-x-1/2 z-1200
-    rounded-md border border-border bg-surface
+  @apply self-center rounded-md border border-border bg-surface
     px-3 py-2 text-sm text-text-muted;
 }
 
 @utility location-error-banner {
-  @apply absolute top-2 left-1/2 -translate-x-1/2 z-1200
-    max-w-xs rounded-md border border-yellow-300 bg-yellow-50
+  @apply rounded-md border border-yellow-300 bg-yellow-50
     px-3 py-2 text-center text-sm text-yellow-800 shadow-sm;
 }
 
@@ -33,4 +31,14 @@
 
 @utility desktop-tree-panel {
   @apply hidden md:block border-r border-border;
+}
+
+@utility map-status-stack {
+  @apply pointer-events-none absolute top-2 left-1/2 z-1200
+    flex w-full max-w-xs -translate-x-1/2 flex-col gap-2 px-2;
+}
+
+@utility tree-error-banner {
+  @apply rounded-md border border-red-300 bg-red-50
+    px-3 py-2 text-center text-sm text-red-800 shadow-sm;
 }

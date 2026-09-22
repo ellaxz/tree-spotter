@@ -4,6 +4,7 @@ const API_URL = import.meta.env.VITE_API_URL
 
 export default function useTreesInBounds() {
   const [trees, setTrees] = useState([])
+  const [treesError, setTreesError] = useState(null)
 
   const abortControllerRef = useRef(null)
   const fetchTimerRef = useRef(null)
@@ -35,8 +36,11 @@ export default function useTreesInBounds() {
   function loadTreesByBounds(bounds, zoom) {
     if (zoom < 13) {
       setTrees([])
+      setTreesError(null)
       return
     }
+
+    setTreesError(null)
 
     //cancel the previous request before starting a new one
     abortControllerRef.current?.abort()
@@ -55,9 +59,18 @@ export default function useTreesInBounds() {
         signal: controller.signal,
       },
     )
-      .then((res) => res.json())
+      .then(async (res) => {
+        const data = await res.json()
+
+        if (!res.ok) {
+          throw new Error(data.error || "Failed to fetch trees")
+        }
+        return data
+      })
       .then((data) => {
-        // if (requestId !== latestRequestId.current) return
+        if (!Array.isArray(data)) {
+          throw new Error("Invalid tree data received")
+        }
 
         setTrees(data)
       })
@@ -66,7 +79,8 @@ export default function useTreesInBounds() {
           return
         }
         console.error("failed to fetch trees:", error)
+        setTreesError(error.message)
       })
   }
-  return { trees, fetchTreesByBounds }
+  return { trees, treesError, fetchTreesByBounds }
 }

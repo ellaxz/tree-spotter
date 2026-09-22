@@ -13,12 +13,13 @@ import useIsDesktop from "./hooks/useIsDesktop.js"
 import LocationStatus from "./components/LocationStatus.jsx"
 import AuthDialog from "./components/AuthDialog.jsx"
 import MobileAuthSheet from "./components/MobileAuthSheet.jsx"
+import TreeDataStatus from "./components/TreeDataStatus.jsx"
 
 function App() {
   const { user, loading, logout } = useAuth()
   const isDesktop = useIsDesktop()
 
-  const { trees, fetchTreesByBounds } = useTreesInBounds()
+  const { trees, treesError, fetchTreesByBounds } = useTreesInBounds()
   const [selectedTree, setSelectedTree] = useState(null)
   const [layoutVersion, setLayoutVersion] = useState(0) // bump this to tell the map to recheck its size
   const [authOpen, setAuthOpen] = useState(false)
@@ -102,10 +103,13 @@ function App() {
             <Separator className="resize-separator" />
 
             <Panel className="relative">
-              <LocationStatus
-                loading={isLoadingLocation}
-                error={locationError}
-              />
+              <div className="map-status-stack">
+                <LocationStatus
+                  loading={isLoadingLocation}
+                  error={locationError}
+                />
+                <TreeDataStatus error={treesError} />
+              </div>
 
               <TreeMap
                 trees={trees}
@@ -150,7 +154,13 @@ function App() {
             </button>
           </div>
           <div className="relative min-h-0 flex-1">
-            <LocationStatus loading={isLoadingLocation} error={locationError} />
+            <div className="map-status-stack">
+              <LocationStatus
+                loading={isLoadingLocation}
+                error={locationError}
+              />
+              <TreeDataStatus error={treesError} />
+            </div>
 
             <TreeMap
               trees={trees}
