@@ -111,9 +111,11 @@ function TreeInfoPanel({ tree, onClose }) {
 
         <div className="space-y-3 text-body-muted">
           <p>
-            Planted in {tree.yearPlanted}, in {tree.precinct}.
+            Planted in {tree.yearPlanted} in {tree.precinct}.
           </p>
-          <p>Life expectancy: {tree.usefulLifeExpectancy}</p>
+          {tree.usefulLifeExpectancy && (
+            <p>Life expectancy: {tree.usefulLifeExpectancy}</p>
+          )}
         </div>
 
         <div className="mt-4 pt-3.5 border-t border-border">
