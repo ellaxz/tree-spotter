@@ -24,16 +24,14 @@ export default function useTreesInBounds() {
     return Math.max(-90, Math.min(90, lat))
   }
 
-  // query trees within the map's current visible bounds
   function fetchTreesByBounds(bounds, zoom) {
     clearTimeout(fetchTimerRef.current)
 
-    fetchTimerRef.current = setTimeout(() => {
-      loadTreesByBounds(bounds, zoom)
-    }, 120)
-  }
+    // cancel the request for the previous map view
+    abortControllerRef.current?.abort()
+    abortControllerRef.current = null
 
-  function loadTreesByBounds(bounds, zoom) {
+    // avoid large queries when zoomed out
     if (zoom < 13) {
       setTrees([])
       setTreesError(null)
@@ -42,9 +40,13 @@ export default function useTreesInBounds() {
 
     setTreesError(null)
 
-    //cancel the previous request before starting a new one
-    abortControllerRef.current?.abort()
+    // debounce rapid map movements
+    fetchTimerRef.current = setTimeout(() => {
+      loadTreesByBounds(bounds)
+    }, 120)
+  }
 
+  function loadTreesByBounds(bounds) {
     const controller = new AbortController()
     abortControllerRef.current = controller
 
