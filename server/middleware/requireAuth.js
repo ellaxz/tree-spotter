@@ -2,7 +2,7 @@ import jwt from "jsonwebtoken"
 
 export default function requireAuth(req, res, next) {
   //read the JWT from httpOnly cookie
-  const token = req.cookies.token
+  const token = req.cookies.__session
 
   if (!token) {
     return res.status(401).json({
