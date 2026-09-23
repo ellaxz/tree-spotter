@@ -59,7 +59,7 @@ export async function register(email, password) {
     }),
   })
 
-  const data = await response.json()
+  const data = await safeJson(response)
 
   if (!response.ok) {
     throw new Error(data.error || "registration failed")
