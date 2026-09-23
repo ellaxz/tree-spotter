@@ -5,6 +5,14 @@ import { ObjectId } from "mongodb"
 
 import requireAuth from "../middleware/requireAuth.js"
 
+const isProd = process.env.NODE_ENV === "production"
+
+const cookieOptions = {
+  httpOnly: true,
+  secure: isProd,
+  sameSite: isProd ? "none" : "lax",
+}
+
 export default function createAuthRouter(usersCollection) {
   const router = express.Router()
 
@@ -105,9 +113,7 @@ export default function createAuthRouter(usersCollection) {
       )
 
       res.cookie("token", token, {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === "production",
-        sameSite: "lax",
+        ...cookieOptions,
         maxAge: 60 * 60 * 1000,
       })
 
@@ -151,11 +157,7 @@ export default function createAuthRouter(usersCollection) {
   })
 
   router.post("/logout", (req, res) => {
-    res.clearCookie("token", {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "lax",
-    })
+    res.clearCookie("token", cookieOptions)
 
     return res.status(200).json({
       message: "logged out sucessfully",
