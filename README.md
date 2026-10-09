@@ -16,6 +16,7 @@ That's how TreeSpotter started. Point at a tree, discover its name, and see the 
 - Click any tree to view its details and a species photo from Wikipedia, using a two-step lookup to handle taxonomy naming changes
 - Marker clustering for a cleaner view when zoomed out
 - Resizable sidebar on desktop and a bottom sheet on mobile
+- User authentication with JWT and httpOnly cookies
 
 ## Tech stack
 
