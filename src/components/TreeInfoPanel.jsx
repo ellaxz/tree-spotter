@@ -1,31 +1,26 @@
-import { useEffect, useRef, useState } from "react"
+import { useEffect, useState } from "react"
 import { TreePine, X, ArrowRight } from "lucide-react"
 
 function TreeInfoPanel({ tree, onClose }) {
-  const [imageUrl, setImageUrl] = useState(null)
-  const [isLoadingImage, setIsLoadingImage] = useState(true)
-  const imageCache = useRef({})
+  const [imageResults, setImageResults] = useState({})
 
-  // two step look up
-  // search first then fetch summary by the matched title
+  const scientificName = tree?.scientificName
+  const currentResult = scientificName
+    ? imageResults[scientificName]
+    : undefined
+
+  const imageUrl = currentResult?.imageUrl ?? null
+  const isLoadingImage = tree != null && currentResult === undefined
+
+  // search wikipedia then fetch the matched page summary
   useEffect(() => {
-    if (!tree) return
-    // clear the previous tree's image before fetching the new one
-    setImageUrl(null)
-    setIsLoadingImage(true)
-
-    //resue cached results including null when no image was found
-    if (imageCache.current[tree.scientificName] !== undefined) {
-      setImageUrl(imageCache.current[tree.scientificName])
-      setIsLoadingImage(false)
-      return
-    }
+    if (!scientificName || currentResult !== undefined) return
 
     const controller = new AbortController()
     let active = true
 
     fetch(
-      `https://en.wikipedia.org/w/api.php?action=query&list=search&srsearch=${encodeURIComponent(tree.scientificName)}&format=json&origin=*`,
+      `https://en.wikipedia.org/w/api.php?action=query&list=search&srsearch=${encodeURIComponent(scientificName)}&format=json&origin=*`,
       { signal: controller.signal },
     )
       .then((res) => res.json())
@@ -34,9 +29,12 @@ function TreeInfoPanel({ tree, onClose }) {
 
         const results = searchData.query.search
 
-        // cache null to avoid repeating the same search
+        // cache empty result to avoid repeating the search
         if (results.length === 0) {
-          imageCache.current[tree.scientificName] = null
+          setImageResults((previous) => ({
+            ...previous,
+            [scientificName]: { imageUrl: null },
+          }))
           return null
         }
 
@@ -52,26 +50,31 @@ function TreeInfoPanel({ tree, onClose }) {
 
             const foundUrl = data.thumbnail ? data.thumbnail.source : null
 
-            imageCache.current[tree.scientificName] = foundUrl
-            setImageUrl(foundUrl)
+            setImageResults((previous) => ({
+              ...previous,
+              [scientificName]: { imageUrl: foundUrl },
+            }))
           })
       })
       .catch((err) => {
-        if (err.name === "AbortError") return
+        if (!active || err.name === "AbortError") return
 
         console.error("failed to fetch tree image:", err)
+        setImageResults((previous) => ({
+          ...previous,
+          [scientificName]: {
+            imageUrl: null,
+            error: true,
+          },
+        }))
       })
-      .finally(() => {
-        if (active) {
-          setIsLoadingImage(false)
-        }
-      })
-    // ignore stale results and cancel requests when the selection changes
+
+    // ignore stale results and cancel requests on cleanup
     return () => {
       active = false
       controller.abort()
     }
-  }, [tree])
+  }, [scientificName, currentResult])
 
   if (!tree) {
     return (
@@ -109,7 +112,9 @@ function TreeInfoPanel({ tree, onClose }) {
         {isLoadingImage ? (
           <span className="text-sm text-text-subtle">loading</span>
         ) : imageUrl ? (
+          // a new image element prevents the previous species photo from lingering
           <img
+            key={scientificName}
             src={imageUrl}
             alt={tree.commonName}
             className="w-full h-full object-cover"
