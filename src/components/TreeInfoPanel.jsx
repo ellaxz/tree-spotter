@@ -7,28 +7,34 @@ function TreeInfoPanel({ tree, onClose }) {
   const imageCache = useRef({})
 
   // two step look up
-  // search first then fectch summary by the matched title
+  // search first then fetch summary by the matched title
   useEffect(() => {
     if (!tree) return
     // clear the previous tree's image before fetching the new one
     setImageUrl(null)
     setIsLoadingImage(true)
 
-    //if we've already lookup up this species, use the cached result
+    //resue cached results including null when no image was found
     if (imageCache.current[tree.scientificName] !== undefined) {
       setImageUrl(imageCache.current[tree.scientificName])
       setIsLoadingImage(false)
       return
     }
 
+    const controller = new AbortController()
+    let active = true
+
     fetch(
       `https://en.wikipedia.org/w/api.php?action=query&list=search&srsearch=${encodeURIComponent(tree.scientificName)}&format=json&origin=*`,
+      { signal: controller.signal },
     )
       .then((res) => res.json())
       .then((searchData) => {
+        if (!active) return
+
         const results = searchData.query.search
 
-        // cache null when no wikipedia result is found
+        // cache null to avoid repeating the same search
         if (results.length === 0) {
           imageCache.current[tree.scientificName] = null
           return null
@@ -38,21 +44,33 @@ function TreeInfoPanel({ tree, onClose }) {
 
         return fetch(
           `https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(pageTitle)}`,
+          { signal: controller.signal },
         )
           .then((res) => res.json())
           .then((data) => {
+            if (!active) return
+
             const foundUrl = data.thumbnail ? data.thumbnail.source : null
-            //cache either the image url or null
+
             imageCache.current[tree.scientificName] = foundUrl
             setImageUrl(foundUrl)
           })
       })
       .catch((err) => {
+        if (err.name === "AbortError") return
+
         console.error("failed to fetch tree image:", err)
       })
       .finally(() => {
-        setIsLoadingImage(false)
+        if (active) {
+          setIsLoadingImage(false)
+        }
       })
+    // ignore stale results and cancel requests when the selection changes
+    return () => {
+      active = false
+      controller.abort()
+    }
   }, [tree])
 
   if (!tree) {
