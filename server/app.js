@@ -4,8 +4,13 @@ import cors from "cors"
 
 import createAuthRouter from "./routes/auth.js"
 import createTreesRouter from "./routes/trees.js"
+import createSavedTreesRouter from "./routes/savedTrees.js"
 
-export default function createApp({ treesCollection, usersCollection }) {
+export default function createApp({
+  treesCollection,
+  usersCollection,
+  savedTreesCollection,
+}) {
   const app = express()
 
   const allowedOrigins = [
@@ -27,6 +32,14 @@ export default function createApp({ treesCollection, usersCollection }) {
   )
   app.use(express.json())
   app.use(cookieParser())
+
+  app.use(
+    "/api/saved-trees",
+    createSavedTreesRouter({
+      savedTreesCollection,
+      treesCollection,
+    }),
+  )
 
   app.get("/", (req, res) => {
     return res.send("treespotter api is running")
