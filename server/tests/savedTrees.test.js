@@ -69,4 +69,72 @@ describe("Saved Trees API", () => {
     expect(response.status).toBe(401)
     expect(response.body.error).toBe("authentication required")
   })
+
+  test("loggedin user can save a tree", async () => {
+    const agent = request.agent(app)
+
+    const registerResponse = await agent.post("/api/auth/register").send({
+      email: "save@test.com",
+      password: "testpassword123",
+    })
+    expect(registerResponse.status).toBe(201)
+
+    const loginResponse = await agent.post("/api/auth/login").send({
+      email: "save@test.com",
+      password: "testpassword123",
+    })
+    expect(loginResponse.status).toBe(200)
+
+    const result = await treesCollection.insertOne({
+      commonName: "Test Tree",
+      scientificName: "Test species",
+    })
+
+    const treeId = result.insertedId.toString()
+
+    const saveResponse = await agent.put(`/api/saved-trees/${treeId}`)
+
+    expect(saveResponse.status).toBe(200)
+    expect(saveResponse.body).toEqual({
+      treeId,
+      saved: true,
+    })
+
+    const savedTree = await savedTreesCollection.findOne({
+      treeId: result.insertedId,
+    })
+
+    expect(savedTree).not.toBeNull()
+    expect(savedTree.userId.toString()).toBe(loginResponse.body.id)
+    expect(savedTree.createdAt).toBeInstanceOf(Date)
+
+    const secondSaveResponse = await agent.put(`/api/saved-trees/${treeId}`)
+    expect(secondSaveResponse.status).toBe(200)
+
+    const savedCount = await savedTreesCollection.countDocuments({
+      userId: savedTree.userId,
+      treeId: result.insertedId,
+    })
+    expect(savedCount).toBe(1)
+
+    const listResponse = await agent.get("/api/saved-trees")
+
+    expect(listResponse.status).toBe(200)
+    expect(listResponse.body).toHaveLength(1)
+    expect(listResponse.body[0]._id).toBe(treeId)
+    expect(listResponse.body[0].commonName).toBe("Test Tree")
+
+    const deleteResponse = await agent.delete(`/api/saved-trees/${treeId}`)
+
+    expect(deleteResponse.status).toBe(200)
+    expect(deleteResponse.body).toEqual({
+      treeId,
+      saved: false,
+    })
+
+    const afterDeleteResponse = await agent.get("/api/saved-trees")
+
+    expect(afterDeleteResponse.status).toBe(200)
+    expect(afterDeleteResponse.body).toEqual([])
+  })
 })
