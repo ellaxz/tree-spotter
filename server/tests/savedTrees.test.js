@@ -62,6 +62,30 @@ afterAll(async () => {
   }
 })
 
+async function createLoggedInAgent(email) {
+  const agent = request.agent(app)
+
+  const credentials = {
+    email,
+    password: "testpassword123",
+  }
+
+  const registerResponse = await agent
+    .post("/api/auth/register")
+    .send(credentials)
+
+  expect(registerResponse.status).toBe(201)
+
+  const loginResponse = await agent.post("/api/auth/login").send(credentials)
+
+  expect(loginResponse.status).toBe(200)
+
+  return {
+    agent,
+    userId: loginResponse.body.id,
+  }
+}
+
 describe("Saved Trees API", () => {
   test("GET /api/saved-trees rejects requests without session", async () => {
     const response = await request(app).get("/api/saved-trees")
@@ -70,22 +94,29 @@ describe("Saved Trees API", () => {
     expect(response.body.error).toBe("authentication required")
   })
 
-  test("loggedin user can save a tree", async () => {
-    const agent = request.agent(app)
+  test("PUT rejects an invalid tree ID", async () => {
+    const { agent } = await createLoggedInAgent("invalidid@test.com")
 
-    const registerResponse = await agent.post("/api/auth/register").send({
-      email: "save@test.com",
-      password: "testpassword123",
-    })
+    const response = await agent.put("/api/saved-trees/not-a-valid-id")
 
-    expect(registerResponse.status).toBe(201)
+    expect(response.status).toBe(400)
+    expect(response.body.error).toBe("invalid tree ID")
+    expect(await savedTreesCollection.countDocuments({})).toBe(0)
+  })
 
-    const loginResponse = await agent.post("/api/auth/login").send({
-      email: "save@test.com",
-      password: "testpassword123",
-    })
+  test("PUT returns 404 for a missing tree", async () => {
+    const { agent } = await createLoggedInAgent("missing-tree@test.com")
+    const response = await agent.put(
+      "/api/saved-trees/507f1f76bcf86cd799439015",
+    )
 
-    expect(loginResponse.status).toBe(200)
+    expect(response.status).toBe(404)
+    expect(response.body.error).toBe("tree not found")
+    expect(await savedTreesCollection.countDocuments({})).toBe(0)
+  })
+
+  test("PUT saves a tree for the logged in user", async () => {
+    const { agent, userId } = await createLoggedInAgent("save@test.com")
 
     const result = await treesCollection.insertOne({
       commonName: "Test Tree",
@@ -97,6 +128,7 @@ describe("Saved Trees API", () => {
     const saveResponse = await agent.put(`/api/saved-trees/${treeId}`)
 
     expect(saveResponse.status).toBe(200)
+
     expect(saveResponse.body).toEqual({
       treeId,
       saved: true,
@@ -107,69 +139,85 @@ describe("Saved Trees API", () => {
     })
 
     expect(savedTree).not.toBeNull()
-    expect(savedTree.userId.toString()).toBe(loginResponse.body.id)
+    expect(savedTree.userId.toString()).toBe(userId)
     expect(savedTree.createdAt).toBeInstanceOf(Date)
+  })
 
-    const secondSaveResponse = await agent.put(`/api/saved-trees/${treeId}`)
+  test("PUT does not create duplicate saved records", async () => {
+    const { agent } = await createLoggedInAgent("duplicate@test.com")
 
-    expect(secondSaveResponse.status).toBe(200)
+    const result = await treesCollection.insertOne({
+      commonName: "Test Tree",
+      scientificName: "Test species",
+    })
+
+    const treeId = result.insertedId.toString()
+
+    const firstResponse = await agent.put(`/api/saved-trees/${treeId}`)
+    const secondResponse = await agent.put(`/api/saved-trees/${treeId}`)
+
+    expect(firstResponse.status).toBe(200)
+    expect(secondResponse.status).toBe(200)
 
     const savedCount = await savedTreesCollection.countDocuments({
-      userId: savedTree.userId,
       treeId: result.insertedId,
     })
 
     expect(savedCount).toBe(1)
+  })
 
-    const listResponse = await agent.get("/api/saved-trees")
+  test("GET returns the user's saved trees", async () => {
+    const { agent } = await createLoggedInAgent("list@test.com")
 
-    expect(listResponse.status).toBe(200)
-    expect(listResponse.body).toHaveLength(1)
-    expect(listResponse.body[0]._id).toBe(treeId)
-    expect(listResponse.body[0].commonName).toBe("Test Tree")
+    const result = await treesCollection.insertOne({
+      commonName: "Test Tree",
+      scientificName: "Test species",
+    })
 
-    const deleteResponse = await agent.delete(`/api/saved-trees/${treeId}`)
+    const treeId = result.insertedId.toString()
 
-    expect(deleteResponse.status).toBe(200)
-    expect(deleteResponse.body).toEqual({
+    const saveResponse = await agent.put(`/api/saved-trees/${treeId}`)
+    expect(saveResponse.status).toBe(200)
+
+    const response = await agent.get("/api/saved-trees")
+
+    expect(response.status).toBe(200)
+    expect(response.body).toHaveLength(1)
+    expect(response.body[0]._id).toBe(treeId)
+    expect(response.body[0].commonName).toBe("Test Tree")
+  })
+
+  test("DELETE removes the user's saved tree", async () => {
+    const { agent } = await createLoggedInAgent("delete@test.com")
+
+    const result = await treesCollection.insertOne({
+      commonName: "Test Tree",
+      scientificName: "Test species",
+    })
+
+    const treeId = result.insertedId.toString()
+
+    const saveResponse = await agent.put(`/api/saved-trees/${treeId}`)
+    expect(saveResponse.status).toBe(200)
+
+    const response = await agent.delete(`/api/saved-trees/${treeId}`)
+
+    expect(response.status).toBe(200)
+    expect(response.body).toEqual({
       treeId,
       saved: false,
     })
 
-    const afterDeleteResponse = await agent.get("/api/saved-trees")
+    const savedCount = await savedTreesCollection.countDocuments({
+      treeId: result.insertedId,
+    })
 
-    expect(afterDeleteResponse.status).toBe(200)
-    expect(afterDeleteResponse.body).toEqual([])
+    expect(savedCount).toBe(0)
   })
 
-  test("users cannot access each others saved trees", async () => {
-    const userA = request.agent(app)
-    const userB = request.agent(app)
-
-    const crentialsA = {
-      email: "usera@test.com",
-      password: "testpassword123",
-    }
-
-    const registerA = await userA.post("/api/auth/register").send(crentialsA)
-
-    expect(registerA.status).toBe(201)
-
-    const loginA = await userA.post("/api/auth/login").send(crentialsA)
-    expect(loginA.status).toBe(200)
-
-    const credentialsB = {
-      email: "userb@test.com",
-      password: "testpassword123",
-    }
-
-    const registerB = await userB.post("/api/auth/register").send(credentialsB)
-
-    expect(registerB.status).toBe(201)
-
-    const loginB = await userB.post("/api/auth/login").send(credentialsB)
-
-    expect(loginB.status).toBe(200)
+  test("GET excludes another user's saved trees", async () => {
+    const { agent: userA } = await createLoggedInAgent("usera@test.com")
+    const { agent: userB } = await createLoggedInAgent("userb@test.com")
 
     const result = await treesCollection.insertOne({
       commonName: "A's saved tree",
@@ -179,17 +227,30 @@ describe("Saved Trees API", () => {
     const treeId = result.insertedId.toString()
 
     const saveResponse = await userA.put(`/api/saved-trees/${treeId}`)
-
     expect(saveResponse.status).toBe(200)
 
-    const listB = await userB.get("/api/saved-trees")
+    const response = await userB.get("/api/saved-trees")
 
-    expect(listB.status).toBe(200)
-    expect(listB.body).toEqual([])
+    expect(response.status).toBe(200)
+    expect(response.body).toEqual([])
+  })
 
-    const deleteB = await userB.delete(`/api/saved-trees/${treeId}`)
+  test("DELETE does not remove another user's saved tree", async () => {
+    const { agent: userA } = await createLoggedInAgent("usera@test.com")
+    const { agent: userB } = await createLoggedInAgent("userb@test.com")
 
-    expect(deleteB.status).toBe(200)
+    const result = await treesCollection.insertOne({
+      commonName: "A's saved tree",
+      scientificName: "Test species",
+    })
+
+    const treeId = result.insertedId.toString()
+
+    const saveResponse = await userA.put(`/api/saved-trees/${treeId}`)
+    expect(saveResponse.status).toBe(200)
+
+    const response = await userB.delete(`/api/saved-trees/${treeId}`)
+    expect(response.status).toBe(200)
 
     const listA = await userA.get("/api/saved-trees")
 
