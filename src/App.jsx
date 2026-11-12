@@ -1,4 +1,4 @@
-import { TreePine, UserRound, Bookmark } from "lucide-react"
+import { TreePine, UserRound, Bookmark, X } from "lucide-react"
 import { useState } from "react"
 import { Group, Panel, Separator } from "react-resizable-panels"
 
@@ -183,6 +183,23 @@ function App() {
               <span className="text-heading">TreeSpotter</span>
             </button>
 
+            {user && (
+              <button
+                type="button"
+                onClick={() => {
+                  setAuthOpen(false)
+                  setPanelView((previous) =>
+                    previous === "saved" ? "tree" : "saved",
+                  )
+                }}
+                aria-pressed={panelView === "saved"}
+                className="inline-flex items-center gap-1 rounded-lg border border-brand/30 px-2 py-2 text-sm text-brandinline-flex items-center gap-1 rounded-lg border border"
+              >
+                <Bookmark size={18} aria-hidden="true" />
+                <span>Saved</span>
+              </button>
+            )}
+
             <button
               type="button"
               onClick={() => {
@@ -231,14 +248,28 @@ function App() {
               onLogout={logout}
             />
 
-            {selectedTree && (
+            {panelView === "saved" && user && !authOpen ? (
+              <div className="mobile-tree-panel overflow-y-auto">
+                <div className="sticky top-0 z-10 h-0 pointer-events-none">
+                  <button
+                    type="button"
+                    onClick={() => setPanelView("tree")}
+                    aria-label="Close saved trees"
+                    className="absolute top-3 right-3 flex h-11 w-11 items-center justify-center rounded-full bg-surface text-brand shadow-sm pointer-events-auto hover:bg-brand/10 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand"
+                  >
+                    <X size={20} aria-hidden="true" />
+                  </button>
+                </div>
+                <SavedTreesPanel />
+              </div>
+            ) : selectedTree && !authOpen ? (
               <div className="mobile-tree-panel">
                 <TreeInfoPanel
                   tree={selectedTree}
                   onClose={() => setSelectedTree(null)}
                 />
               </div>
-            )}
+            ) : null}
           </div>
         </div>
       )}
