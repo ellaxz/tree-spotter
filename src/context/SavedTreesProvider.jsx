@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react"
 import { useAuth } from "./AuthContext"
 import { SavedTreesContext } from "./SavedTreesContext"
-import { getSavedTrees } from "../api/savedTrees"
+import { getSavedTrees, saveTree as saveTreeRequest } from "../api/savedTrees"
 
 export default function SavedTreesProvider({ children }) {
   const { user } = useAuth()
@@ -63,12 +63,41 @@ export default function SavedTreesProvider({ children }) {
     }
   }, [userId])
 
+  function isTreeSaved(treeId) {
+    return currentState.trees.some((tree) => tree._id === treeId)
+  }
+
+  async function saveTree(tree) {
+    if (!userId || currentState.status !== "success") {
+      throw new Error("Saved trees are not ready")
+    }
+
+    await saveTreeRequest(tree._id)
+
+    setState((previous) => {
+      if (previous.userId !== userId) return previous
+
+      const alreadySaved = previous.trees.some(
+        (savedTree) => savedTree._id === tree._id,
+      )
+
+      if (alreadySaved) return previous
+
+      return {
+        ...previous,
+        trees: [tree, ...previous.trees],
+      }
+    })
+  }
+
   return (
     <SavedTreesContext.Provider
       value={{
         savedTrees: currentState.trees,
         status: currentState.status,
         error: currentState.error,
+        isTreeSaved,
+        saveTree,
       }}
     >
       {children}

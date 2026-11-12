@@ -1,7 +1,14 @@
 import { useEffect, useState } from "react"
-import { TreePine, X, ArrowRight } from "lucide-react"
+import { TreePine, X, ArrowRight, Bookmark } from "lucide-react"
+import { useAuth } from "../context/AuthContext"
+import useSavedTrees from "../hooks/useSavedTrees.js"
 
 function TreeInfoPanel({ tree, onClose }) {
+  const { user } = useAuth()
+  const { isTreeSaved, status } = useSavedTrees()
+
+  const isSaved = tree ? isTreeSaved(tree._id) : false
+
   const [imageResults, setImageResults] = useState({})
 
   const scientificName = tree?.scientificName
@@ -128,7 +135,30 @@ function TreeInfoPanel({ tree, onClose }) {
       </div>
 
       <div className="p-5">
-        <h3 className="text-title m-0">{tree.commonName}</h3>
+        <div className="flex items-start justify-between gap-3">
+          <h3 className="text-title m-0">{tree.commonName}</h3>
+
+          {user && (
+            <button
+              type="button"
+              disabled
+              aria-label={
+                status === "success"
+                  ? isSaved
+                    ? "Tree saved"
+                    : "Tree not saved"
+                  : "Saved status unavailable"
+              }
+              className="shrink-0 p-2 text-brand disabled:cursor-not-allowed"
+            >
+              <Bookmark
+                size={22}
+                fill={status === "success" && isSaved ? "currentColor" : "none"}
+                aria-hidden="true"
+              />
+            </button>
+          )}
+        </div>
         <p className="text-scientific mt-1 mb-3">{tree.scientificName}</p>
         <div className="accent-divider mb-4" />
 
