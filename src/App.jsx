@@ -140,7 +140,7 @@ function App() {
               ) : (
                 <TreeInfoPanel
                   tree={selectedTree}
-                  onClose={() => selectedTree(null)}
+                  onClose={() => setSelectedTree(null)}
                 />
               )}
             </Panel>
