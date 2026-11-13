@@ -1,33 +1,116 @@
 import express from "express"
 import bcrypt from "bcrypt"
-import jwt from "jsonwebtoken"
+
 import { ObjectId } from "mongodb"
 
 import requireAuth from "../middleware/requireAuth.js"
-
-const AUTH_COOKIE = "__session"
-
-const cookieOptions = {
-  httpOnly: true,
-  secure: process.env.NODE_ENV === "production",
-  sameSite: "lax",
-}
+import { clearSession, createSession } from "../utils/authSession.js"
+import findOrCreateGoogleUser from "../services/findOrCreateGoogleUser.js"
+import { firebaseAuth } from "../firebaseAdmin.js"
 
 export default function createAuthRouter(usersCollection) {
   const router = express.Router()
 
+  router.post("/google", async (req, res) => {
+    const allowedOrigins = [
+      "http://localhost:5173",
+      "https://treespotter.web.app",
+    ]
+
+    if (!allowedOrigins.includes(req.get("origin"))) {
+      return res.status(403).json({
+        error: "request origin not allowed",
+      })
+    }
+
+    const { idToken } = req.body ?? {}
+
+    if (typeof idToken !== "string" || !idToken) {
+      return res.status(400).json({
+        error: "google id token is required",
+      })
+    }
+    let decoded
+
+    try {
+      decoded = await firebaseAuth.verifyIdToken(idToken)
+    } catch (error) {
+      console.error("Google token verification failed", error.message)
+
+      return res.status(401).json({
+        error: "Google sign-in failed. Please try again.",
+      })
+    }
+
+    if (
+      decoded.firebase?.sign_in_provider !== "google.com" ||
+      decoded.email_verified !== true ||
+      typeof decoded.email !== "string"
+    ) {
+      return res.status(401).json({
+        error: "a verified Google account is required",
+      })
+    }
+
+    try {
+      const user = await findOrCreateGoogleUser(usersCollection, {
+        uid: decoded.uid,
+        email: decoded.email,
+      })
+
+      createSession(res, user._id)
+
+      return res.status(200).json({
+        id: user._id,
+        email: user.email,
+      })
+    } catch (error) {
+      if (error.status === 409) {
+        return res.status(409).json({
+          error: error.message,
+        })
+      }
+
+      console.error("Google login error", error)
+
+      return res.status(500).json({
+        error: "internal server error",
+      })
+    }
+  })
+
   router.post("/register", async (req, res) => {
     try {
       // read user input from the request body
-      const { email, password } = req.body
+      const { email, password } = req.body ?? {}
 
-      if (!email || !password) {
+      // validate input types before calling string methods
+      if (typeof email !== "string" || typeof password !== "string") {
         return res.status(400).json({
-          error: "email and password are required",
+          error: "email and password must be strings",
         })
       }
 
       const normalizedEmail = email.trim().toLowerCase()
+
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(normalizedEmail)) {
+        return res.status(400).json({
+          error: "please enter a valid email address",
+        })
+      }
+
+      if (password.length < 8) {
+        return res.status(400).json({
+          error: "password must be at least 8 characters",
+        })
+      }
+
+      // bcrypt only uses the first 72 bytes of a password
+      if (Buffer.byteLength(password, "utf8") > 72) {
+        return res.status(400).json({
+          error: "password must not exceed 72 bytes",
+        })
+      }
 
       // check whether this email is already registered
       const existingUser = await usersCollection.findOne({
@@ -71,16 +154,21 @@ export default function createAuthRouter(usersCollection) {
 
   router.post("/login", async (req, res) => {
     try {
-      const { email, password } = req.body
+      const { email, password } = req.body ?? {}
 
-      if (!email || !password) {
+      if (typeof email !== "string" || typeof password !== "string") {
         return res.status(400).json({
-          error: "email and password are required",
+          error: "email and password must be strings",
         })
       }
 
       const normalizedEmail = email.trim().toLowerCase()
 
+      if (!normalizedEmail || !password) {
+        return res.status(400).json({
+          error: "email and password are required",
+        })
+      }
       //find the user by normalized email
       const user = await usersCollection.findOne({
         email: normalizedEmail,
@@ -101,21 +189,7 @@ export default function createAuthRouter(usersCollection) {
         })
       }
 
-      //create a signed JWT for the authenticated user
-      const token = jwt.sign(
-        {
-          userId: user._id.toString(),
-        },
-        process.env.JWT_SECRET,
-        {
-          expiresIn: "1h",
-        },
-      )
-
-      res.cookie(AUTH_COOKIE, token, {
-        ...cookieOptions,
-        maxAge: 60 * 60 * 1000,
-      })
+      createSession(res, user._id)
 
       return res.status(200).json({
         id: user._id,
@@ -157,10 +231,10 @@ export default function createAuthRouter(usersCollection) {
   })
 
   router.post("/logout", (req, res) => {
-    res.clearCookie(AUTH_COOKIE, cookieOptions)
+    clearSession(res)
 
     return res.status(200).json({
-      message: "logged out sucessfully",
+      message: "logged out successfully",
     })
   })
 

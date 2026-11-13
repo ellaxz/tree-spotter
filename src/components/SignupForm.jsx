@@ -14,7 +14,7 @@ export default function SignupForm({ onSignupSuccess }) {
 
     setError("")
 
-    if (!email.includes("@")) {
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) {
       setError("Please enter a valid email.")
       return
     }
@@ -26,7 +26,7 @@ export default function SignupForm({ onSignupSuccess }) {
     setSubmitting(true)
 
     try {
-      await register(email, password)
+      await register(email.trim().toLowerCase(), password)
       setEmail("")
       setPassword("")
 
@@ -61,8 +61,11 @@ export default function SignupForm({ onSignupSuccess }) {
           value={password}
           onChange={(event) => setPassword(event.target.value)}
           autoComplete="new-password"
+          minLength={8}
+          aria-describedby="signup-password-hint"
           required
         />
+        <p id="signup-password-hint">Use at least 8 characters.</p>
       </div>
 
       {error && <p className="auth-error">{error}</p>}

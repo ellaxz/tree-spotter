@@ -2,7 +2,7 @@ import { useState } from "react"
 import { useAuth } from "../context/AuthContext.jsx"
 
 export default function LoginForm() {
-  const { login } = useAuth()
+  const { login, loginWithGoogle } = useAuth()
 
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
@@ -31,6 +31,19 @@ export default function LoginForm() {
       await login(email, password)
     } catch (error) {
       setError(error.message)
+    } finally {
+      setSubmitting(false)
+    }
+  }
+
+  async function handleGoogleLogin() {
+    setError("")
+    setSubmitting(true)
+
+    try {
+      await loginWithGoogle()
+    } catch (error) {
+      setError(error.message || "Google sign-in failed. Please try again.")
     } finally {
       setSubmitting(false)
     }
@@ -66,6 +79,14 @@ export default function LoginForm() {
 
       <button type="submit" disabled={submitting} className="auth-submit">
         {submitting ? "Logging in ..." : "Log in"}
+      </button>
+      <button
+        type="button"
+        onClick={handleGoogleLogin}
+        disabled={submitting}
+        className="auth-submit"
+      >
+        Continue with Google
       </button>
     </form>
   )
