@@ -19,15 +19,35 @@ export default function createAuthRouter(usersCollection) {
   router.post("/register", async (req, res) => {
     try {
       // read user input from the request body
-      const { email, password } = req.body
+      const { email, password } = req.body ?? {}
 
-      if (!email || !password) {
+      // validate input types before calling string methods
+      if (typeof email !== "string" || typeof password !== "string") {
         return res.status(400).json({
-          error: "email and password are required",
+          error: "email and password must be strings",
         })
       }
 
       const normalizedEmail = email.trim().toLowerCase()
+
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(normalizedEmail)) {
+        return res.status(400).json({
+          error: "please enter a valid email address",
+        })
+      }
+
+      if (password.length < 8) {
+        return res.status(400).json({
+          error: "password must be at least 8 characters",
+        })
+      }
+
+      // bcrypt only uses the first 72 bytes of a password
+      if (Buffer.byteLength(password, "utf8") > 72) {
+        return res.status(400).json({
+          error: "password must not exceed 72 bytes",
+        })
+      }
 
       // check whether this email is already registered
       const existingUser = await usersCollection.findOne({
@@ -71,16 +91,21 @@ export default function createAuthRouter(usersCollection) {
 
   router.post("/login", async (req, res) => {
     try {
-      const { email, password } = req.body
+      const { email, password } = req.body ?? {}
 
-      if (!email || !password) {
+      if (typeof email !== "string" || typeof password !== "string") {
         return res.status(400).json({
-          error: "email and password are required",
+          error: "email and password must be strings",
         })
       }
 
       const normalizedEmail = email.trim().toLowerCase()
 
+      if (!normalizedEmail || !password) {
+        return res.status(400).json({
+          error: "email and password are required",
+        })
+      }
       //find the user by normalized email
       const user = await usersCollection.findOne({
         email: normalizedEmail,
@@ -160,7 +185,7 @@ export default function createAuthRouter(usersCollection) {
     res.clearCookie(AUTH_COOKIE, cookieOptions)
 
     return res.status(200).json({
-      message: "logged out sucessfully",
+      message: "logged out successfully",
     })
   })
 
