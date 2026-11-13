@@ -7,7 +7,7 @@ import {
   loginWithGoogle as googleLoginRequest,
 } from "../api/auth.js"
 import { signInWithPopup, signOut } from "firebase/auth"
-import { googleProvider } from "../firebase.js"
+import { auth, googleProvider } from "../firebase.js"
 
 const AuthContext = createContext(null)
 
