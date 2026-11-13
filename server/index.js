@@ -22,6 +22,7 @@ async function startServer() {
 
     const treesCollection = db.collection("trees")
     const usersCollection = db.collection("users")
+    const savedTreesCollection = db.collection("savedTrees")
 
     console.log("connected to mongodb")
 
@@ -32,11 +33,17 @@ async function startServer() {
       { unique: true },
     )
 
+    await savedTreesCollection.createIndex(
+      { userId: 1, treeId: 1 },
+      { unique: true },
+    )
+
     const count = await treesCollection.countDocuments()
     console.log("total trees in collection:", count)
     const app = createApp({
       treesCollection,
       usersCollection,
+      savedTreesCollection,
     })
 
     app.listen(PORT, "0.0.0.0", () => {

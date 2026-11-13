@@ -1,8 +1,16 @@
 import { useEffect, useState } from "react"
-import { TreePine, X, ArrowRight } from "lucide-react"
+import { TreePine, X, ArrowRight, Bookmark } from "lucide-react"
+import { useAuth } from "../context/AuthContext"
+import useSavedTrees from "../hooks/useSavedTrees.js"
 
 function TreeInfoPanel({ tree, onClose }) {
+  const { user } = useAuth()
+  const { isTreeSaved, status, saveTree, removeSavedTree } = useSavedTrees()
+
+  const isSaved = tree ? isTreeSaved(tree._id) : false
+
   const [imageResults, setImageResults] = useState({})
+  const [saveAction, setSaveAction] = useState(null)
 
   const scientificName = tree?.scientificName
   const currentResult = scientificName
@@ -76,6 +84,48 @@ function TreeInfoPanel({ tree, onClose }) {
     }
   }, [scientificName, currentResult])
 
+  async function handleSaveClick() {
+    if (!tree || !user || status !== "success") return
+    if (saveAction?.status === "loading") return
+
+    const action = {
+      treeId: tree._id,
+      userId: user.id,
+      status: "loading",
+      error: null,
+    }
+
+    setSaveAction(action)
+
+    try {
+      if (isSaved) {
+        await removeSavedTree(tree._id)
+      } else {
+        await saveTree(tree)
+      }
+      setSaveAction((previous) => (previous === action ? null : previous))
+    } catch (error) {
+      console.error("Failed to update saved tree:", error)
+
+      setSaveAction((previous) =>
+        previous === action
+          ? {
+              ...action,
+              status: "error",
+              error: "Couldn't update this saved tree. Please try again.",
+            }
+          : previous,
+      )
+    }
+  }
+
+  const isSaving = saveAction?.status === "loading"
+
+  const currentAction =
+    saveAction?.treeId === tree?._id && saveAction?.userId === user?.id
+      ? saveAction
+      : null
+
   if (!tree) {
     return (
       <div className="p-6 bg-surface h-full">
@@ -128,8 +178,39 @@ function TreeInfoPanel({ tree, onClose }) {
       </div>
 
       <div className="p-5">
-        <h3 className="text-title m-0">{tree.commonName}</h3>
+        <div className="flex items-start justify-between gap-3">
+          <h3 className="text-title m-0">{tree.commonName}</h3>
+
+          {user && (
+            <button
+              type="button"
+              onClick={handleSaveClick}
+              disabled={status !== "success" || isSaving}
+              aria-label={isSaved ? "Remove saved tree" : "Save tree"}
+              aria-pressed={status === "success" && isSaved}
+              className="shrink-0 p-2 text-brand disabled:cursor-wait"
+            >
+              <Bookmark
+                size={22}
+                fill={status === "success" && isSaved ? "currentColor" : "none"}
+                aria-hidden="true"
+              />
+            </button>
+          )}
+        </div>
         <p className="text-scientific mt-1 mb-3">{tree.scientificName}</p>
+        {user && (
+          <p className="text-sm text-text-subtle" role="status">
+            {status === "loading"
+              ? "Loading saved status…"
+              : status === "error"
+                ? "Couldn't load saved status."
+                : currentAction?.status === "error"
+                  ? currentAction.error
+                  : null}
+          </p>
+        )}
+
         <div className="accent-divider mb-4" />
 
         <div className="space-y-3 text-body-muted">

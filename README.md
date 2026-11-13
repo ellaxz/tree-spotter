@@ -17,6 +17,7 @@ That's how TreeSpotter started. Point at a tree, discover its name, and see the 
 - Marker clustering for a cleaner view when zoomed out
 - Resizable sidebar on desktop and a bottom sheet on mobile
 - User authentication with JWT and httpOnly cookies
+- Save and unsave trees with a personal collection available on desktop and mobile
 
 ## Tech stack
 
